@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentarena}
+      POSTGRES_USER: ${POSTGRES_USER:-agentarena}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentarena}
+    volumes:
+      - agentarena_postgres:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - agentarena_redis:/data
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    environment: &backend-env
+      AGENTARENA_ENVIRONMENT: development
+      AGENTARENA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentarena}:${POSTGRES_PASSWORD:-agentarena}@postgres:5432/${POSTGRES_DB:-agentarena}
+      AGENTARENA_REDIS_URL: redis://redis:6379/0
+      AGENTARENA_JWT_SECRET: ${AGENTARENA_JWT_SECRET:-local-only-change-before-production}
+      AGENTARENA_CORS_ORIGINS: http://localhost:3000
+      AGENTARENA_WORKER_CONCURRENCY: ${AGENTARENA_WORKER_CONCURRENCY:-5}
+      AGENTARENA_MODEL_PRICING_JSON: ${AGENTARENA_MODEL_PRICING_JSON:-{}}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-}
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    command: ["arq", "apps.api.app.workers.run_worker.WorkerSettings"]
+    environment: *backend-env
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "from redis import Redis; assert Redis.from_url('redis://redis:6379/0').ping()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000/v1
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/v1
+    ports: ["3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  agentarena_postgres:
+  agentarena_redis:
+

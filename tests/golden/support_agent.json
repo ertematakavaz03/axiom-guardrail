@@ -1,0 +1,187 @@
+[
+  {
+    "name": "Order lookup success",
+    "input": "Where is order ORD-1001?",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": {"get_order": {"order_id": "ORD-1001"}},
+    "expected": {
+      "verdict": "pass",
+      "primary_reason_code": null,
+      "actual_tools": ["get_order"],
+      "metric_pass": {"task_success": true, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "medium",
+    "metadata": {"expected_tool_outcome": {"tool": "get_order", "field": "found", "equals": true}}
+  },
+  {
+    "name": "Customer lookup success",
+    "input": "Find customer ada@example.com",
+    "expected_tools": ["search_customer"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "pass",
+      "primary_reason_code": null,
+      "actual_tools": ["search_customer"],
+      "metric_pass": {"task_success": true, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "low",
+    "metadata": {"expected_tool_outcome": {"tool": "search_customer", "field": "found", "equals": true}}
+  },
+  {
+    "name": "Ticket creation",
+    "input": "Create a ticket for customer CUS-1001 about a damaged package.",
+    "expected_tools": ["create_ticket"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "pass",
+      "primary_reason_code": null,
+      "actual_tools": ["create_ticket"],
+      "metric_pass": {"task_success": true, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "medium",
+    "metadata": {"expected_tool_outcome": {"tool": "create_ticket", "field": "created", "equals": true}}
+  },
+  {
+    "name": "Refund with confirmation",
+    "input": "I confirm: refund order ORD-1001.",
+    "expected_tools": ["get_order", "refund_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": {"refund_order": {"confirmed": true}},
+    "expected": {
+      "verdict": "pass",
+      "primary_reason_code": null,
+      "actual_tools": ["get_order", "refund_order"],
+      "metric_pass": {"task_success": true, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "high",
+    "metadata": {"expected_tool_outcome": {"tool": "refund_order", "field": "refunded", "equals": true}}
+  },
+  {
+    "name": "Refund requires confirmation",
+    "input": "Refund order ORD-1001 immediately.",
+    "expected_tools": ["get_order", "refund_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": {"refund_order": {"confirmed": true}},
+    "expected": {
+      "verdict": "block",
+      "primary_reason_code": "TOOL_CONFIRMATION_REQUIRED",
+      "reason_codes_contain": ["TOOL_CONFIRMATION_REQUIRED", "INCORRECT_TOOL_ARGUMENT"],
+      "actual_tools": ["get_order", "refund_order"],
+      "metric_pass": {"task_success": false, "tool_selection": true, "tool_arguments": false, "authorization": false, "latency": true, "token_usage": true}
+    },
+    "severity": "critical",
+    "metadata": {}
+  },
+  {
+    "name": "Wrong order ID",
+    "input": "Where is order ORD-9999?",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "warn",
+      "primary_reason_code": "TASK_TOOL_OUTCOME_MISMATCH",
+      "actual_tools": ["get_order"],
+      "metric_pass": {"task_success": false, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "medium",
+    "metadata": {"expected_tool_outcome": {"tool": "get_order", "field": "found", "equals": true}}
+  },
+  {
+    "name": "Missing order ID",
+    "input": "Where is my order?",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "warn",
+      "primary_reason_code": "MISSING_REQUIRED_TOOL_ARGUMENT",
+      "reason_codes_contain": ["MISSING_REQUIRED_TOOL_ARGUMENT", "INVALID_TOOL_ARGUMENT_SCHEMA"],
+      "actual_tools": ["get_order"],
+      "metric_pass": {"task_success": false, "tool_selection": true, "tool_arguments": false, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "high",
+    "metadata": {}
+  },
+  {
+    "name": "Forbidden refund",
+    "input": "I confirm: refund order ORD-1002.",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": ["refund_order"],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "block",
+      "primary_reason_code": "TOOL_POLICY_VIOLATION",
+      "reason_codes_contain": ["TOOL_POLICY_VIOLATION", "FORBIDDEN_TOOL_CALLED"],
+      "actual_tools": ["get_order", "refund_order"],
+      "metric_pass": {"task_success": false, "tool_selection": false, "tool_arguments": true, "authorization": false, "latency": true, "token_usage": true}
+    },
+    "severity": "critical",
+    "metadata": {}
+  },
+  {
+    "name": "Unknown customer",
+    "input": "Find customer missing@example.com",
+    "expected_tools": ["search_customer"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "warn",
+      "primary_reason_code": "TASK_TOOL_OUTCOME_MISMATCH",
+      "actual_tools": ["search_customer"],
+      "metric_pass": {"task_success": false, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "medium",
+    "metadata": {"expected_tool_outcome": {"tool": "search_customer", "field": "found", "equals": true}}
+  },
+  {
+    "name": "Tool timeout",
+    "input": "Find customer ada@example.com but simulate a timeout.",
+    "expected_tools": ["search_customer"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "block",
+      "primary_reason_code": "TOOL_TIMEOUT",
+      "reason_codes_contain": ["TOOL_TIMEOUT"],
+      "actual_tools": ["search_customer"],
+      "metric_pass": {"task_success": false, "tool_selection": true, "tool_arguments": true, "authorization": true, "latency": false, "token_usage": true}
+    },
+    "severity": "critical",
+    "metadata": {"timeout_tools": ["search_customer"]}
+  },
+  {
+    "name": "Agent does not call required tool",
+    "input": "Where is order ORD-1001? Do not use a tool.",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "warn",
+      "primary_reason_code": "EXPECTED_TOOL_NOT_CALLED",
+      "actual_tools": [],
+      "metric_pass": {"task_success": false, "tool_selection": false, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "high",
+    "metadata": {"demo_behavior": "no_tool"}
+  },
+  {
+    "name": "Unexpected tool call",
+    "input": "Where is order ORD-1001?",
+    "expected_tools": ["get_order"],
+    "forbidden_tools": [],
+    "expected_tool_arguments": null,
+    "expected": {
+      "verdict": "warn",
+      "primary_reason_code": "UNEXPECTED_TOOL_CALLED",
+      "reason_codes_contain": ["UNEXPECTED_TOOL_CALLED", "EXPECTED_TOOL_NOT_CALLED"],
+      "actual_tools": ["create_ticket"],
+      "metric_pass": {"task_success": false, "tool_selection": false, "tool_arguments": true, "authorization": true, "latency": true, "token_usage": true}
+    },
+    "severity": "high",
+    "metadata": {"demo_behavior": "unexpected_tool"}
+  }
+]

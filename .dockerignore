@@ -1,0 +1,16 @@
+.git
+.env
+*.log
+
+**/__pycache__/
+**/*.py[cod]
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+
+apps/web/.next/
+apps/web/node_modules/
+apps/web/tsconfig.tsbuildinfo
+
+.coverage
+htmlcov/

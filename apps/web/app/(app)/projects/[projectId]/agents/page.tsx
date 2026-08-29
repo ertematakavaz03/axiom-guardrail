@@ -1,0 +1,22 @@
+"use client";
+
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { api } from "@/lib/api";
+import type { Agent, AgentVersion, Project } from "@/lib/types";
+import { Breadcrumbs, Empty, ErrorNotice, Loading, PageHeader } from "@/components/ui";
+
+type AgentWithVersions = Agent & { versions: AgentVersion[] };
+export default function AgentsPage() {
+  const { projectId } = useParams<{ projectId: string }>(); const [project, setProject] = useState<Project | null>(null); const [agents, setAgents] = useState<AgentWithVersions[] | null>(null); const [open, setOpen] = useState(false); const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => { try { const [p, list] = await Promise.all([api<Project>(`/projects/${projectId}`), api<Agent[]>(`/projects/${projectId}/agents`)]); const withVersions = await Promise.all(list.map(async (agent) => ({ ...agent, versions: await api<AgentVersion[]>(`/agents/${agent.id}/versions`) }))); setProject(p); setAgents(withVersions); } catch (e) { setError(e instanceof Error ? e.message : "Unable to load agents"); } }, [projectId]);
+  useEffect(() => {
+    // Loading remote application state is the synchronization purpose of this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); const adapter = String(data.get("adapter_type")); try { const agent = await api<Agent>(`/projects/${projectId}/agents`, { method: "POST", body: JSON.stringify({ name: data.get("name"), description: data.get("description") }) }); await api(`/agents/${agent.id}/versions`, { method: "POST", body: JSON.stringify({ version: data.get("version"), adapter_type: adapter, endpoint_url: adapter === "generic_http" ? data.get("endpoint_url") : null, model_provider: adapter === "generic_http" ? "openai-compatible" : "demo", model_name: adapter === "generic_http" ? data.get("model_name") : "deterministic-support-v1", system_prompt: "You are a customer support agent operating through approved tools.", config: {}, tool_registry: [] }) }); setOpen(false); load(); } catch (e) { setError(e instanceof Error ? e.message : "Unable to create agent"); } }
+  if (!project || !agents) return <Loading />;
+  return <><Breadcrumbs items={[{ label: "Projects", href: "/projects" }, { label: project.name, href: `/projects/${projectId}` }, { label: "Agents" }]} /><PageHeader eyebrow="AGENT REGISTRY" title="Agents & versions" description="Each run pins an immutable version snapshot without storing credentials." action={<button className="button primary" onClick={() => setOpen(!open)}>+ Register agent</button>} /><ErrorNotice message={error} />{open && <form className="panel form-grid" onSubmit={submit}><label>Name<input name="name" placeholder="Support Agent" required /></label><label>Version<input name="version" placeholder="v1" required /></label><label>Adapter<select name="adapter_type"><option value="demo_support_agent">Demo support agent</option><option value="generic_http">Generic HTTP</option></select></label><label>Model name<input name="model_name" placeholder="gpt-compatible-model" /></label><label className="wide">Endpoint URL (Generic HTTP only)<input name="endpoint_url" type="url" placeholder="https://agent.example.com/execute" /></label><label className="wide">Description<input name="description" placeholder="Customer support production candidate" /></label><button className="button primary">Register agent + version</button></form>}
+    {agents.length === 0 ? <Empty title="No agents registered" detail="Register the deterministic demo adapter or an HTTP-compatible external agent." /> : <div className="stack">{agents.map((agent) => <section className="panel agent-card" key={agent.id}><div className="agent-head"><div className="project-mark">{agent.name.slice(0, 2).toUpperCase()}</div><div><h2>{agent.name}</h2><p>{agent.description || "No description"}</p></div></div><div className="version-list">{agent.versions.map((version) => <div key={version.id}><code>{version.version}</code><span>{version.adapter_type.replaceAll("_", " ")}</span><span>{version.model_provider} / {version.model_name}</span><small>{new Date(version.created_at).toLocaleString()}</small></div>)}</div></section>)}</div>}</>;
+}

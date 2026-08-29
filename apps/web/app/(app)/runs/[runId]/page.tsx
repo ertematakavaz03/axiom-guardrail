@@ -1,0 +1,164 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "@/lib/api";
+import type { CaseResult, Run } from "@/lib/types";
+import { Breadcrumbs, Loading, MetricCard, PageHeader } from "@/components/ui";
+import { StatusBadge } from "@/components/status-badge";
+
+export default function RunDetailPage() {
+  const { runId } = useParams<{ runId: string }>();
+  const [run, setRun] = useState<Run | null>(null);
+  const [cases, setCases] = useState<CaseResult[]>([]);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const load = async () => {
+      const [nextRun, nextCases] = await Promise.all([
+        api<Run>(`/runs/${runId}`),
+        api<CaseResult[]>(`/runs/${runId}/cases`),
+      ]);
+      setRun(nextRun);
+      setCases(nextCases);
+      if (["queued", "running"].includes(nextRun.status)) {
+        timer = setTimeout(load, 1000);
+      }
+    };
+    load();
+    return () => clearTimeout(timer);
+  }, [runId]);
+  const names = useMemo(
+    () =>
+      Object.fromEntries(
+        (run?.snapshot.scenarios ?? []).map((scenario) => [
+          scenario.id,
+          scenario.name,
+        ]),
+      ),
+    [run],
+  );
+  if (!run) return <Loading />;
+  const metrics = run.metrics;
+
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { label: "Runs", href: "/runs" },
+          { label: run.id.slice(0, 8) },
+        ]}
+      />
+      <PageHeader
+        eyebrow="RUN EVIDENCE"
+        title={`Run ${run.id.slice(0, 8)}`}
+        description={`Agent ${String(run.snapshot.agent?.version ?? "—")} · Suite v${String(run.snapshot.suite?.version ?? "—")}`}
+        action={<StatusBadge value={run.verdict ?? run.status} />}
+      />
+      <div className="run-hero panel">
+        <div className={`score-ring score-${run.verdict ?? "queued"}`}>
+          <strong>{run.overall_score ?? "—"}</strong>
+          <span>OVERALL</span>
+        </div>
+        <div>
+          <span className="eyebrow">RELEASE VERDICT</span>
+          <h2>
+            {run.status === "completed"
+              ? run.verdict === "block"
+                ? "Release blocked"
+                : run.verdict === "warn"
+                  ? "Review required"
+                  : "Ready to ship"
+              : "Evaluation in progress"}
+          </h2>
+          <p>
+            {run.status === "completed"
+              ? `${run.failed_cases} of ${run.total_cases} cases need attention.`
+              : `${run.completed_cases} of ${run.total_cases} cases completed.`}
+          </p>
+        </div>
+        <div className="progress-track">
+          <i
+            style={{
+              width: `${run.total_cases ? (run.completed_cases / run.total_cases) * 100 : 0}%`,
+            }}
+          />
+        </div>
+      </div>
+      <section className="metric-grid compact">
+        <MetricCard
+          label="Task Success"
+          value={metrics.task_success !== undefined ? `${metrics.task_success}%` : "—"}
+        />
+        <MetricCard
+          label="Tool Selection"
+          value={
+            metrics.tool_selection_accuracy !== undefined
+              ? `${metrics.tool_selection_accuracy}%`
+              : "—"
+          }
+        />
+        <MetricCard
+          label="Security Violations"
+          value={metrics.security_violations ?? "—"}
+          tone={Number(metrics.security_violations) ? "block" : "pass"}
+        />
+        <MetricCard
+          label="Average / p95"
+          value={
+            metrics.average_latency_ms !== undefined
+              ? `${metrics.average_latency_ms} / ${metrics.p95_latency_ms} ms`
+              : "—"
+          }
+        />
+        <MetricCard label="Total tokens" value={metrics.total_tokens ?? "—"} />
+      </section>
+      <section className="panel spaced">
+        <div className="panel-title">
+          <div>
+            <span className="eyebrow">CASE RESULTS</span>
+            <h2>Failure-first investigation</h2>
+          </div>
+          <span>
+            {run.passed_cases} passed · {run.failed_cases} need attention
+          </span>
+        </div>
+        <div className="case-table">
+          <div className="table-head">
+            <span>Scenario</span>
+            <span>Verdict</span>
+            <span>Primary reason</span>
+            <span>Latency</span>
+            <span>Tokens</span>
+            <span>Score</span>
+          </div>
+          {[...cases]
+            .sort((first, second) =>
+              first.verdict === "block" ? -1 : second.verdict === "block" ? 1 : 0,
+            )
+            .map((item) => (
+              <Link
+                href={`/cases/${item.id}`}
+                className="table-row six"
+                key={item.id}
+              >
+                <span>
+                  <strong>
+                    {names[item.scenario_id] ?? item.scenario_id.slice(0, 8)}
+                  </strong>
+                  <small>{item.status}</small>
+                </span>
+                <StatusBadge value={item.verdict ?? item.status} />
+                <code className="reason-code">
+                  {item.reason_codes[0] ?? "—"}
+                </code>
+                <span>{item.latency_ms ?? "—"} ms</span>
+                <span>{item.total_tokens ?? "—"}</span>
+                <b>{item.score ?? "—"} →</b>
+              </Link>
+            ))}
+        </div>
+      </section>
+    </>
+  );
+}
