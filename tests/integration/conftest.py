@@ -12,6 +12,7 @@ from sqlalchemy import inspect, text
 from apps.api.app.config import get_settings
 from apps.api.app.db.session import engine
 from apps.api.app.main import app
+from services.rag.storage import QdrantVectorStore
 
 EXPECTED_TABLES = {
     "organizations",
@@ -27,6 +28,12 @@ EXPECTED_TABLES = {
     "traces",
     "eval_results",
     "audit_logs",
+    "corpora",
+    "documents",
+    "document_versions",
+    "document_chunks",
+    "rag_configs",
+    "gold_evidence",
 }
 
 
@@ -42,7 +49,7 @@ async def isolated_database() -> None:
                 lambda sync_connection: set(inspect(sync_connection).get_table_names())
             )
             if not EXPECTED_TABLES.issubset(table_names):
-                pytest.fail("Phase 1 Alembic migration has not been applied to the test database")
+                pytest.fail("Phase 2 Alembic migrations have not been applied to the test database")
             await connection.execute(
                 text(f"TRUNCATE TABLE {', '.join(sorted(EXPECTED_TABLES))} CASCADE")
             )
@@ -64,9 +71,22 @@ async def client() -> AsyncClient:
     except OSError as exc:
         pytest.skip(f"Redis is unavailable: {exc}")
     app.state.redis = redis
+    qdrant = QdrantVectorStore(
+        settings.qdrant_url,
+        settings.qdrant_collection_prefix,
+        settings.embedding_vector_size,
+        settings.rag_retrieval_timeout_seconds,
+    )
+    try:
+        await qdrant.health()
+    except Exception as exc:
+        await redis.aclose()
+        pytest.skip(f"Qdrant is unavailable: {type(exc).__name__}")
+    app.state.qdrant = qdrant
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://testserver"
     ) as test_client:
         yield test_client
+    await qdrant.close()
     await redis.aclose()
     await engine.dispose()

@@ -20,6 +20,20 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql+asyncpg://agentarena:agentarena@localhost:5432/agentarena"
     redis_url: str = "redis://localhost:6379/0"
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection_prefix: str = "agentarena"
+    embedding_provider: str = "deterministic"
+    embedding_model: str = "deterministic-hash-v1"
+    embedding_vector_size: int = 64
+    openai_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OPENAI_API_KEY", "AGENTARENA_OPENAI_API_KEY"),
+    )
+    openai_base_url: str = "https://api.openai.com/v1"
+    rag_chunk_size_tokens: int = 600
+    rag_chunk_overlap_tokens: int = 75
+    rag_max_upload_bytes: int = 10 * 1024 * 1024
+    rag_retrieval_timeout_seconds: int = 10
     jwt_secret: SecretStr = SecretStr("change-me-in-production")
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 60
@@ -60,6 +74,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def secure_production_secret(self) -> Settings:
+        if self.rag_chunk_overlap_tokens >= self.rag_chunk_size_tokens:
+            raise ValueError("RAG chunk overlap must be smaller than chunk size")
+        if self.embedding_vector_size < 8:
+            raise ValueError("Embedding vector size must be at least 8")
         if (
             self.environment.lower() in {"production", "prod"}
             and self.jwt_secret.get_secret_value() == "change-me-in-production"

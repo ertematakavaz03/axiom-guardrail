@@ -91,6 +91,7 @@ async def _execute_case(
             agent_config=snapshot["agent"],
             suite_config=snapshot["suite"],
             budget=snapshot["budget"],
+            rag_config=snapshot.get("rag"),
         )
         async with SessionLocal() as session:
             case = await session.get(CaseResult, case_id, with_for_update=True)
@@ -211,6 +212,9 @@ async def _finalize_run(run_id: uuid.UUID) -> None:
                             "case_id": str(case.id),
                             "metric": evaluation.metric,
                             "passed": evaluation.passed,
+                            "value": float(evaluation.value)
+                            if evaluation.value is not None
+                            else None,
                         }
                         for evaluation in evaluations
                     ],

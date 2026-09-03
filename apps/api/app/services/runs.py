@@ -11,12 +11,29 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.app.config import Settings
-from apps.api.app.db.models import Agent, AgentVersion, Run, RunStatus, Scenario, TestSuite, User
+from apps.api.app.db.models import (
+    Agent,
+    AgentVersion,
+    GoldEvidence,
+    RagConfig,
+    Run,
+    RunStatus,
+    Scenario,
+    TestSuite,
+    User,
+)
 from apps.api.app.errors import ConflictError, QueueUnavailableError
-from apps.api.app.repositories.scoping import get_agent_version, get_project, get_suite
+from apps.api.app.repositories.scoping import (
+    get_agent_version,
+    get_corpus,
+    get_project,
+    get_rag_config,
+    get_suite,
+)
 from apps.api.app.schemas.resources import RunCreate
 from apps.api.app.services.audit import add_audit
 from services.evaluators.engine import DeterministicEvaluationEngine
+from services.rag.storage import collection_name_for
 
 
 class RunEnqueuer(Protocol):
@@ -63,7 +80,41 @@ class RunService:
         if not scenarios:
             raise ConflictError("Cannot run an empty test suite")
         budget = self._budget(payload.budget or {}, len(scenarios))
-        snapshot = self._snapshot(agent, version, suite, list(scenarios), budget)
+        rag_snapshot: dict[str, Any] | None = None
+        gold_by_scenario: dict[uuid.UUID, list[GoldEvidence]] = {}
+        if payload.corpus_id or payload.rag_config_id:
+            if not payload.corpus_id or not payload.rag_config_id:
+                raise ConflictError("RAG runs require both corpus_id and rag_config_id")
+            corpus = await get_corpus(self.session, self.user.id, payload.corpus_id)
+            rag_config = await get_rag_config(self.session, self.user.id, payload.rag_config_id)
+            if corpus.project_id != project.id or rag_config.project_id != project.id:
+                raise ConflictError("RAG corpus/config must belong to the run project")
+            rag_snapshot = self._rag_snapshot(
+                project.organization_id,
+                project.id,
+                corpus.id,
+                corpus.version,
+                rag_config,
+                self.settings.qdrant_collection_prefix,
+            )
+            evidence = (
+                await self.session.scalars(
+                    select(GoldEvidence).where(
+                        GoldEvidence.scenario_id.in_([scenario.id for scenario in scenarios])
+                    )
+                )
+            ).all()
+            for item in evidence:
+                gold_by_scenario.setdefault(item.scenario_id, []).append(item)
+        snapshot = self._snapshot(
+            agent,
+            version,
+            suite,
+            list(scenarios),
+            budget,
+            rag_snapshot,
+            gold_by_scenario,
+        )
         run = Run(
             project_id=project.id,
             test_suite_id=suite.id,
@@ -121,8 +172,10 @@ class RunService:
         suite: TestSuite,
         scenarios: list[Scenario],
         budget: dict[str, int],
+        rag_snapshot: dict[str, Any] | None = None,
+        gold_by_scenario: dict[uuid.UUID, list[GoldEvidence]] | None = None,
     ) -> dict[str, Any]:
-        return {
+        snapshot: dict[str, Any] = {
             "agent": {
                 "id": str(agent.id),
                 "version_id": str(version.id),
@@ -154,10 +207,66 @@ class RunService:
                     "severity": scenario.severity.value,
                     "timeout_seconds": scenario.timeout_seconds,
                     "metadata": deepcopy(scenario.scenario_metadata),
+                    **(
+                        {
+                            "gold_evidence": [
+                                {
+                                    "document_id": str(item.document_id)
+                                    if item.document_id
+                                    else None,
+                                    "document_version_id": str(item.document_version_id)
+                                    if item.document_version_id
+                                    else None,
+                                    "chunk_id": str(item.chunk_id) if item.chunk_id else None,
+                                    "relevance_score": float(item.relevance_score),
+                                    "required": item.required,
+                                    "metadata": deepcopy(item.evidence_metadata),
+                                }
+                                for item in (gold_by_scenario or {}).get(scenario.id, [])
+                            ]
+                        }
+                        if (gold_by_scenario or {}).get(scenario.id)
+                        else {}
+                    ),
                 }
                 for scenario in scenarios
             ],
             "evaluator_versions": DeterministicEvaluationEngine().versions,
             "budget": budget,
             "created_at": datetime.now(UTC).isoformat(),
+        }
+        if rag_snapshot is not None:
+            snapshot["rag"] = deepcopy(rag_snapshot)
+        return snapshot
+
+    @staticmethod
+    def _rag_snapshot(
+        organization_id: uuid.UUID,
+        project_id: uuid.UUID,
+        corpus_id: uuid.UUID,
+        corpus_version: str,
+        config: RagConfig,
+        collection_prefix: str,
+    ) -> dict[str, Any]:
+        return {
+            "organization_id": str(organization_id),
+            "project_id": str(project_id),
+            "corpus_id": str(corpus_id),
+            "corpus_version": corpus_version,
+            "rag_config_id": str(config.id),
+            "embedding_provider": config.embedding_provider,
+            "embedding_model": config.embedding_model,
+            "dense_enabled": config.dense_enabled,
+            "sparse_enabled": config.sparse_enabled,
+            "retrieval_parameters": {
+                "top_k_dense": config.top_k_dense,
+                "top_k_sparse": config.top_k_sparse,
+                "hybrid_top_k": config.hybrid_top_k,
+                "rerank_top_n": config.rerank_top_n,
+                "metadata_filter_policy": deepcopy(config.metadata_filter_policy),
+            },
+            "reranker_type": config.reranker_type,
+            "reranker_model": config.reranker_model,
+            "gold_evidence_version": "1",
+            "qdrant_collection_name": collection_name_for(collection_prefix, str(project_id)),
         }

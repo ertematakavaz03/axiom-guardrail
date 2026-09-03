@@ -8,6 +8,5 @@ export default function Home() {
   useEffect(() => {
     router.replace(localStorage.getItem("agentarena_token") ? "/dashboard" : "/login");
   }, [router]);
-  return <main className="center-screen muted">Opening AgentArena…</main>;
+  return <main className="center-screen muted">Opening Axiom Guardrail…</main>;
 }
-

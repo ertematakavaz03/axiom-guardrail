@@ -71,6 +71,41 @@ class CaseStatus(enum.StrEnum):
     FAILED = "failed"
 
 
+class CorpusStatus(enum.StrEnum):
+    DRAFT = "draft"
+    READY = "ready"
+    INDEXING = "indexing"
+    FAILED = "failed"
+    ARCHIVED = "archived"
+
+
+class DocumentSourceType(enum.StrEnum):
+    TEXT = "text"
+    MARKDOWN = "markdown"
+    PDF = "pdf"
+
+
+class DocumentStatus(enum.StrEnum):
+    PENDING = "pending"
+    INDEXING = "indexing"
+    READY = "ready"
+    FAILED = "failed"
+    ARCHIVED = "archived"
+
+
+class DocumentVersionStatus(enum.StrEnum):
+    PENDING = "pending"
+    INDEXING = "indexing"
+    READY = "ready"
+    FAILED = "failed"
+
+
+class TrustLevel(enum.StrEnum):
+    TRUSTED = "trusted"
+    STANDARD = "standard"
+    UNTRUSTED = "untrusted"
+
+
 class Organization(Base, TimestampMixin):
     __tablename__ = "organizations"
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -176,6 +211,140 @@ class Scenario(Base, TimestampMixin):
     )
     timeout_seconds: Mapped[int] = mapped_column(Integer, default=30)
     scenario_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONType, default=dict)
+
+
+class Corpus(Base, TimestampMixin):
+    __tablename__ = "corpora"
+    __table_args__ = (UniqueConstraint("project_id", "name", "version"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[str] = mapped_column(String(100), default="1")
+    status: Mapped[CorpusStatus] = mapped_column(
+        Enum(CorpusStatus, name="corpus_status"), default=CorpusStatus.DRAFT
+    )
+
+
+class Document(Base, TimestampMixin):
+    __tablename__ = "documents"
+    __table_args__ = (UniqueConstraint("corpus_id", "name"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    corpus_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("corpora.id", ondelete="CASCADE"), index=True
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(255))
+    source_type: Mapped[DocumentSourceType] = mapped_column(
+        Enum(DocumentSourceType, name="document_source_type")
+    )
+    mime_type: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    source_uri: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    current_version: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[DocumentStatus] = mapped_column(
+        Enum(DocumentStatus, name="document_status"), default=DocumentStatus.PENDING
+    )
+    document_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONType, default=dict)
+
+
+class DocumentVersion(Base):
+    __tablename__ = "document_versions"
+    __table_args__ = (UniqueConstraint("document_id", "version"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("documents.id", ondelete="CASCADE"), index=True
+    )
+    version: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
+    content_length: Mapped[int] = mapped_column(Integer)
+    effective_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    trust_level: Mapped[TrustLevel] = mapped_column(
+        Enum(TrustLevel, name="trust_level"), default=TrustLevel.STANDARD
+    )
+    status: Mapped[DocumentVersionStatus] = mapped_column(
+        Enum(DocumentVersionStatus, name="document_version_status"),
+        default=DocumentVersionStatus.PENDING,
+    )
+    version_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONType, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DocumentChunk(Base):
+    __tablename__ = "document_chunks"
+    __table_args__ = (
+        UniqueConstraint("document_version_id", "chunk_index"),
+        Index("ix_document_chunks_scope", "organization_id", "project_id", "corpus_id"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    document_version_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("document_versions.id", ondelete="CASCADE"), index=True
+    )
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("documents.id", ondelete="CASCADE"), index=True
+    )
+    corpus_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("corpora.id", ondelete="CASCADE"), index=True
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), index=True
+    )
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    token_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    section_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    qdrant_point_id: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
+    chunk_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONType, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RagConfig(Base, TimestampMixin):
+    __tablename__ = "rag_configs"
+    __table_args__ = (UniqueConstraint("project_id", "name"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    embedding_provider: Mapped[str] = mapped_column(String(100), default="deterministic")
+    embedding_model: Mapped[str] = mapped_column(String(200), default="deterministic-hash-v1")
+    dense_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    sparse_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    top_k_dense: Mapped[int] = mapped_column(Integer, default=20)
+    top_k_sparse: Mapped[int] = mapped_column(Integer, default=20)
+    hybrid_top_k: Mapped[int] = mapped_column(Integer, default=10)
+    reranker_type: Mapped[str] = mapped_column(String(100), default="token_overlap")
+    reranker_model: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    rerank_top_n: Mapped[int] = mapped_column(Integer, default=5)
+    metadata_filter_policy: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
+
+
+class GoldEvidence(Base):
+    __tablename__ = "gold_evidence"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    scenario_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("scenarios.id", ondelete="CASCADE"), index=True
+    )
+    document_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("documents.id", ondelete="CASCADE"), nullable=True
+    )
+    document_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("document_versions.id", ondelete="CASCADE"), nullable=True
+    )
+    chunk_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("document_chunks.id", ondelete="CASCADE"), nullable=True
+    )
+    relevance_score: Mapped[float] = mapped_column(Numeric(6, 4), default=1.0)
+    required: Mapped[bool] = mapped_column(Boolean, default=True)
+    evidence_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONType, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Run(Base):

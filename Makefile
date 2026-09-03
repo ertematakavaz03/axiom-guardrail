@@ -23,4 +23,4 @@ migrate:
 	alembic upgrade head
 seed:
 	python -m demos.support_agent.seed
-
+	python -m demos.rag_research.seed

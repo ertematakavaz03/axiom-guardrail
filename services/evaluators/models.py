@@ -5,6 +5,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field
 
 from packages.agent_sdk.contracts import AgentExecutionResult
+from services.rag.models import GoldEvidenceRef, RetrievalResult, RetrievalScope
 from services.tool_gateway.gateway import GatewayRecord
 
 
@@ -27,6 +28,9 @@ class EvaluationContext(BaseModel):
     pricing: dict[str, dict[str, float]] = Field(default_factory=dict)
     agent_config: dict[str, Any] = Field(default_factory=dict)
     budget: dict[str, int] = Field(default_factory=dict)
+    retrieval: RetrievalResult | None = None
+    gold_evidence: list[GoldEvidenceRef] = Field(default_factory=list)
+    rag_scope: RetrievalScope | None = None
 
 
 class Evaluator(Protocol):

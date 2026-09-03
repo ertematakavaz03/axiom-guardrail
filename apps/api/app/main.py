@@ -22,6 +22,7 @@ from apps.api.app.errors import (
     ResourceNotFoundError,
 )
 from apps.api.app.logging import configure_logging
+from services.rag.storage import QdrantVectorStore
 
 settings = get_settings()
 configure_logging()
@@ -31,12 +32,19 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.redis = await create_pool(RedisSettings.from_dsn(settings.redis_url))
+    app.state.qdrant = QdrantVectorStore(
+        settings.qdrant_url,
+        settings.qdrant_collection_prefix,
+        settings.embedding_vector_size,
+        settings.rag_retrieval_timeout_seconds,
+    )
     yield
+    await app.state.qdrant.close()
     await app.state.redis.aclose()
 
 
 app = FastAPI(
-    title="AgentArena API",
+    title="Axiom Guardrail API",
     version="0.1.0",
     description="Evidence-backed AI agent quality and security evaluation API.",
     lifespan=lifespan,
@@ -83,4 +91,5 @@ async def health(request: Request) -> dict[str, str]:
     async with SessionLocal() as session:
         await session.execute(text("SELECT 1"))
     await request.app.state.redis.ping()
-    return {"status": "ok"}
+    await request.app.state.qdrant.health()
+    return {"status": "ok", "postgres": "ok", "redis": "ok", "qdrant": "ok"}

@@ -15,6 +15,8 @@ from apps.api.app.errors import (
 )
 from packages.agent_sdk.contracts import (
     AgentAdapter,
+    AgentCitation,
+    AgentClaim,
     AgentExecutionRequest,
     AgentExecutionResult,
     AgentToolCall,
@@ -47,6 +49,8 @@ class ExternalAgentResponse(BaseModel):
     final_response: str
     messages: list[ExternalMessage] = Field(default_factory=list)
     tool_calls: list[ExternalToolCall] = Field(default_factory=list)
+    citations: list[AgentCitation] = Field(default_factory=list)
+    claims: list[AgentClaim] = Field(default_factory=list)
     usage: ExternalUsage = Field(default_factory=ExternalUsage)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -100,7 +104,7 @@ class GenericHttpAgentAdapter:
             parsed = ExternalAgentResponse.model_validate(response.json())
         except (ValueError, ValidationError) as exc:
             raise AgentResponseValidationError(
-                "Agent response did not match the AgentArena HTTP contract",
+                "Agent response did not match the Axiom Guardrail HTTP contract",
                 details={"transient": False},
             ) from exc
         return AgentExecutionResult(
@@ -109,6 +113,8 @@ class GenericHttpAgentAdapter:
             tool_calls=[
                 AgentToolCall.model_validate(call.model_dump()) for call in parsed.tool_calls
             ],
+            citations=parsed.citations,
+            claims=parsed.claims,
             token_usage=TokenUsage.model_validate(parsed.usage.model_dump()),
             latency_ms=latency_ms,
             raw_metadata=parsed.metadata,
@@ -190,12 +196,89 @@ class DemoSupportAgentAdapter:
         )
 
 
+class DemoRagAgentAdapter:
+    """Deterministic evidence-aware agent used by the Phase 2 benchmark."""
+
+    async def execute(self, request: AgentExecutionRequest) -> AgentExecutionResult:
+        evidence = list(request.sandbox_context.get("retrieved_evidence", []))
+        metadata = request.scenario.get("metadata", {})
+        behavior = metadata.get("demo_behavior", "grounded")
+        citations: list[AgentCitation] = []
+        claims: list[AgentClaim] = []
+        if not evidence:
+            response = "I could not find sufficient evidence to answer the question."
+        else:
+            selected = evidence[0]
+            if behavior == "wrong_citation":
+                gold_chunk_ids = {
+                    str(item.get("chunk_id"))
+                    for item in request.scenario.get("gold_evidence", [])
+                    if item.get("chunk_id")
+                }
+                selected = next(
+                    (
+                        item
+                        for item in evidence
+                        if str(item.get("chunk_id")) not in gold_chunk_ids
+                    ),
+                    evidence[0],
+                )
+            if behavior in {"unsupported_claim", "hallucinated_value"}:
+                response = str(
+                    metadata.get(
+                        "demo_answer",
+                        "Customers can request refunds within 30 days.",
+                    )
+                )
+            elif behavior == "partial_grounding":
+                response = f"{evidence[0]['content']} Processing always takes 90 days."
+            else:
+                response = str(metadata.get("demo_answer", evidence[0]["content"]))
+            sentence_parts = [
+                part.strip()
+                for part in response.replace("!", ".").replace("?", ".").split(".")
+                if part.strip()
+            ]
+            claims = [
+                AgentClaim(id=f"claim_{index}", text=f"{sentence}.", type="factual")
+                for index, sentence in enumerate(sentence_parts, start=1)
+            ]
+            if behavior != "missing_citation" and claims:
+                if behavior == "citation_not_retrieved":
+                    chunk_id = str(uuid.UUID(int=0))
+                    document_id = str(uuid.UUID(int=0))
+                else:
+                    chunk_id = str(selected["chunk_id"])
+                    document_id = str(selected["document_id"])
+                citations.append(
+                    AgentCitation(
+                        citation_id="c1",
+                        chunk_id=chunk_id,
+                        document_id=document_id,
+                        claim_ids=[claim.id for claim in claims],
+                    )
+                )
+        input_tokens = max(1, len(request.scenario["input"].split()) * 2)
+        output_tokens = max(1, len(response.split()) * 2)
+        return AgentExecutionResult(
+            final_response=response,
+            messages=[{"role": "assistant", "content": response}],
+            citations=citations,
+            claims=claims,
+            token_usage=TokenUsage(input_tokens=input_tokens, output_tokens=output_tokens),
+            latency_ms=35,
+            raw_metadata={"adapter": "deterministic-rag-demo", "evidence_count": len(evidence)},
+        )
+
+
 def adapter_for(agent_config: dict[str, Any], settings: Settings) -> AgentAdapter:
     adapter_type = agent_config.get("adapter_type")
     if adapter_type == "generic_http":
         return GenericHttpAgentAdapter(settings)
     if adapter_type == "demo_support_agent":
         return DemoSupportAgentAdapter()
+    if adapter_type == "demo_rag_agent":
+        return DemoRagAgentAdapter()
     raise AgentResponseValidationError(f"Unsupported adapter type: {adapter_type}")
 
 

@@ -9,8 +9,11 @@ from apps.api.app.db.models import (
     Agent,
     AgentVersion,
     CaseResult,
+    Corpus,
+    Document,
     OrganizationMember,
     Project,
+    RagConfig,
     Run,
     Scenario,
     TestSuite,
@@ -110,3 +113,43 @@ async def get_case(session: AsyncSession, user_id: uuid.UUID, case_id: uuid.UUID
     if case is None:
         raise ResourceNotFoundError("Case result not found")
     return case
+
+
+async def get_corpus(session: AsyncSession, user_id: uuid.UUID, corpus_id: uuid.UUID) -> Corpus:
+    corpus = await session.scalar(
+        select(Corpus)
+        .join(Project, Project.id == Corpus.project_id)
+        .join(OrganizationMember, OrganizationMember.organization_id == Project.organization_id)
+        .where(Corpus.id == corpus_id, OrganizationMember.user_id == user_id)
+    )
+    if corpus is None:
+        raise ResourceNotFoundError("Corpus not found")
+    return corpus
+
+
+async def get_document(
+    session: AsyncSession, user_id: uuid.UUID, document_id: uuid.UUID
+) -> Document:
+    document = await session.scalar(
+        select(Document)
+        .join(Project, Project.id == Document.project_id)
+        .join(OrganizationMember, OrganizationMember.organization_id == Project.organization_id)
+        .where(Document.id == document_id, OrganizationMember.user_id == user_id)
+    )
+    if document is None:
+        raise ResourceNotFoundError("Document not found")
+    return document
+
+
+async def get_rag_config(
+    session: AsyncSession, user_id: uuid.UUID, config_id: uuid.UUID
+) -> RagConfig:
+    config = await session.scalar(
+        select(RagConfig)
+        .join(Project, Project.id == RagConfig.project_id)
+        .join(OrganizationMember, OrganizationMember.organization_id == Project.organization_id)
+        .where(RagConfig.id == config_id, OrganizationMember.user_id == user_id)
+    )
+    if config is None:
+        raise ResourceNotFoundError("RAG configuration not found")
+    return config

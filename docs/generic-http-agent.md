@@ -1,6 +1,6 @@
 # Generic HTTP agent contract
 
-The Generic HTTP adapter lets AgentArena evaluate a framework-neutral external agent. It makes one `POST` request per scenario with `Content-Type: application/json`. When `AGENTARENA_GENERIC_HTTP_SECRET` is configured, the API—not the browser—adds `Authorization: Bearer …`.
+The Generic HTTP adapter lets Axiom Guardrail evaluate a framework-neutral external agent. It makes one `POST` request per scenario with `Content-Type: application/json`. When `AGENTARENA_GENERIC_HTTP_SECRET` is configured, the API—not the browser—adds `Authorization: Bearer …`.
 
 ## Request
 
@@ -34,9 +34,8 @@ The Generic HTTP adapter lets AgentArena evaluate a framework-neutral external a
 
 `messages`, `tool_calls`, `usage`, and `metadata` may be empty but must have the documented types. Unknown top-level and nested fields are rejected. Invalid JSON or a schema mismatch becomes `AGENT_RESPONSE_VALIDATION_ERROR` evidence instead of crashing a worker.
 
-`result` is accepted as diagnostic metadata but does not authorize a side effect. AgentArena validates the tool against the snapshotted registry and scenario policy, validates arguments, applies confirmation and risk rules, and executes only the local sandbox implementation.
+`result` is accepted as diagnostic metadata but does not authorize a side effect. Axiom Guardrail validates the tool against the snapshotted registry and scenario policy, validates arguments, applies confirmation and risk rules, and executes only the local sandbox implementation.
 
 ## Retry behavior
 
-AgentArena retries only HTTP 429, temporary 5xx, network interruption, and timeout failures, at most twice. HTTP 4xx, invalid responses, invalid tool arguments, incorrect behavior, and policy violations never retry.
-
+Axiom Guardrail retries only HTTP 429, temporary 5xx, network interruption, and timeout failures, at most twice. HTTP 4xx, invalid responses, invalid tool arguments, incorrect behavior, and policy violations never retry.

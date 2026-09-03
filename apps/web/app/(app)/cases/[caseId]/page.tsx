@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
@@ -38,6 +39,21 @@ export default function CaseTracePage() {
   );
   if (!bundle) return <Loading />;
   const primaryReason = bundle.case.reason_codes[0];
+  const evidenceTrace = bundle.traces.find((trace) => trace.event_type === "retrieval_evidence_selected");
+  const retrievalFailure = bundle.traces.find((trace) => trace.event_type === "retrieval_failed");
+  const claims = bundle.traces.filter((trace) => trace.event_type === "claim_extracted");
+  const citations = bundle.traces.filter((trace) => trace.event_type === "citation_emitted");
+  const evidenceHits = Array.isArray(evidenceTrace?.payload.hits)
+    ? evidenceTrace.payload.hits.filter(
+        (hit): hit is Record<string, unknown> => typeof hit === "object" && hit !== null,
+      )
+    : [];
+  const ragEvaluations = bundle.evaluations.filter((evaluation) =>
+    evaluation.metric.startsWith("retrieval_") ||
+    evaluation.metric.startsWith("citation_") ||
+    ["groundedness", "unsupported_claim_rate", "tenant_isolation", "source_freshness"].includes(evaluation.metric),
+  );
+  const isRagCase = Boolean(evidenceTrace || retrievalFailure || ragEvaluations.length);
 
   return (
     <>
@@ -59,6 +75,20 @@ export default function CaseTracePage() {
           <StatusBadge value={bundle.case.verdict ?? bundle.case.status} />
         }
       />
+      {isRagCase && (
+        <section className="rag-evidence-flow panel">
+          <div className="panel-title"><div><span className="eyebrow">RAG EVIDENCE FLOW</span><h2>Retrieval → answer → citation → verdict</h2></div></div>
+          <div className="evidence-flow-grid">
+            <article><span>01 · RETRIEVAL</span><strong>{retrievalFailure ? "Failed" : `${evidenceHits.length} evidence chunks`}</strong>{retrievalFailure ? <pre>{JSON.stringify(retrievalFailure.payload, null, 2)}</pre> : <div className="source-links">{evidenceHits.map((hit, index) => <Link href={`/documents/${String(hit.document_id)}`} key={String(hit.chunk_id)}><b>#{index + 1} {String(hit.document_name || "Source document")}</b><code>chunk {String(hit.chunk_id).slice(0, 8)} · inspect source →</code></Link>)}</div>}</article>
+            <i>→</i>
+            <article><span>02 · AGENT ANSWER</span><strong>{claims.length} extracted claims</strong><p>{bundle.case.final_response || "No final response"}</p><pre>{JSON.stringify(claims.map((claim) => claim.payload), null, 2)}</pre></article>
+            <i>→</i>
+            <article><span>03 · CITATIONS</span><strong>{citations.length} emitted</strong><pre>{JSON.stringify(citations.map((citation) => citation.payload), null, 2)}</pre></article>
+            <i>→</i>
+            <article className={bundle.case.verdict === "pass" ? "flow-pass" : "flow-fail"}><span>04 · EVALUATION</span><strong>{primaryReason || "All checks passed"}</strong><div>{ragEvaluations.map((evaluation) => <code key={evaluation.id}>{evaluation.metric}: {evaluation.passed ? "PASS" : "FAIL"}</code>)}</div></article>
+          </div>
+        </section>
+      )}
       <div className="trace-layout">
         <section className="panel timeline-panel">
           <div className="panel-title">

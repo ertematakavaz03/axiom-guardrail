@@ -40,6 +40,8 @@ export default function RunDetailPage() {
   );
   if (!run) return <Loading />;
   const metrics = run.metrics;
+  const percentage = (value: number | null | undefined) =>
+    value === null || value === undefined ? "N/A" : `${Math.round(value * 1000) / 10}%`;
 
   return (
     <>
@@ -113,6 +115,24 @@ export default function RunDetailPage() {
         />
         <MetricCard label="Total tokens" value={metrics.total_tokens ?? "—"} />
       </section>
+      {run.snapshot.rag && (
+        <>
+          <section className="panel rag-run-context">
+            <div><span>Corpus snapshot</span><strong>v{run.snapshot.rag.corpus_version}</strong><code>{run.snapshot.rag.corpus_id.slice(0, 8)}</code></div>
+            <div><span>Retrieval</span><strong>{run.snapshot.rag.dense_enabled ? "Dense" : ""}{run.snapshot.rag.sparse_enabled ? " + Sparse" : ""}</strong><code>{run.snapshot.rag.reranker_type}</code></div>
+            <div><span>Embedding</span><strong>{run.snapshot.rag.embedding_provider}</strong><code>{run.snapshot.rag.embedding_model}</code></div>
+            <div><span>Gold evidence</span><strong>v{run.snapshot.rag.gold_evidence_version}</strong><code>immutable</code></div>
+          </section>
+          <section className="metric-grid rag-metrics">
+            <MetricCard label="Recall@1 / @3 / @5" value={`${percentage(metrics.retrieval_recall_at_1)} / ${percentage(metrics.retrieval_recall_at_3)} / ${percentage(metrics.retrieval_recall_at_5)}`} />
+            <MetricCard label="MRR / nDCG" value={`${percentage(metrics.mrr)} / ${percentage(metrics.ndcg)}`} detail="N/A when graded relevance is absent" />
+            <MetricCard label="Citation P / R" value={`${percentage(metrics.citation_precision)} / ${percentage(metrics.citation_recall)}`} />
+            <MetricCard label="Groundedness" value={percentage(metrics.groundedness)} tone={(metrics.groundedness ?? 1) < 1 ? "block" : "pass"} />
+            <MetricCard label="Unsupported claims" value={percentage(metrics.unsupported_claim_rate)} tone={(metrics.unsupported_claim_rate ?? 0) > 0 ? "block" : "pass"} />
+            <MetricCard label="RAG average / p95" value={metrics.rag_average_latency == null ? "N/A" : `${metrics.rag_average_latency} / ${metrics.rag_p95_latency} ms`} detail={`embed ${metrics.embedding_latency ?? "N/A"} · rerank ${metrics.reranking_latency ?? "N/A"} ms`} />
+          </section>
+        </>
+      )}
       <section className="panel spaced">
         <div className="panel-title">
           <div>

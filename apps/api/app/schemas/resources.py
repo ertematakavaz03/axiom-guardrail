@@ -48,7 +48,7 @@ class AgentResponse(ORMModel):
 
 class AgentVersionCreate(BaseModel):
     version: str = Field(min_length=1, max_length=100)
-    adapter_type: Literal["generic_http", "demo_support_agent"]
+    adapter_type: Literal["generic_http", "demo_support_agent", "demo_rag_agent"]
     endpoint_url: AnyHttpUrl | None = None
     model_provider: str = Field(default="demo", max_length=100)
     model_name: str = Field(default="deterministic-support-v1", max_length=200)
@@ -162,6 +162,8 @@ class RunCreate(BaseModel):
     project_id: uuid.UUID
     test_suite_id: uuid.UUID
     agent_version_id: uuid.UUID
+    corpus_id: uuid.UUID | None = None
+    rag_config_id: uuid.UUID | None = None
     budget: dict[str, int] | None = None
 
 

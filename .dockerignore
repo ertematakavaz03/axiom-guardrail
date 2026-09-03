@@ -1,6 +1,11 @@
 .git
 .env
+.env.*
+!.env.example
 *.log
+
+.venv/
+venv/
 
 **/__pycache__/
 **/*.py[cod]
@@ -8,9 +13,27 @@
 **/.pytest_cache/
 **/.ruff_cache/
 
-apps/web/.next/
-apps/web/node_modules/
-apps/web/tsconfig.tsbuildinfo
+**/.next/
+**/node_modules/
+**/*.tsbuildinfo
 
 .coverage
 htmlcov/
+coverage/
+dist/
+build/
+
+*.db
+*.sqlite
+*.sqlite3
+.docker-data/
+docker-data/
+playwright-report/
+test-results/
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+~$*

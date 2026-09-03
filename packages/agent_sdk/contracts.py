@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,6 +26,21 @@ class AgentToolCall(BaseModel):
     result: Any | None = None
 
 
+class AgentCitation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    citation_id: str
+    chunk_id: str
+    document_id: str
+    claim_ids: list[str] = Field(default_factory=list)
+
+
+class AgentClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    text: str
+    type: Literal["factual", "non_factual"] = "factual"
+
+
 class AgentExecutionRequest(BaseModel):
     run_id: uuid.UUID
     case_id: uuid.UUID
@@ -39,6 +54,8 @@ class AgentExecutionResult(BaseModel):
     final_response: str
     messages: list[dict[str, Any]] = Field(default_factory=list)
     tool_calls: list[AgentToolCall] = Field(default_factory=list)
+    citations: list[AgentCitation] = Field(default_factory=list)
+    claims: list[AgentClaim] = Field(default_factory=list)
     token_usage: TokenUsage = Field(default_factory=TokenUsage)
     latency_ms: int = Field(ge=0)
     raw_metadata: dict[str, Any] = Field(default_factory=dict)

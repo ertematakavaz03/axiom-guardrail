@@ -10,7 +10,7 @@ export function token(): string | null {
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
+  if (!(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   const accessToken = token();
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   const response = await fetch(`${API_URL}${path}`, { ...init, headers, cache: "no-store" });
@@ -33,4 +33,3 @@ export function saveSession(accessToken: string): void {
 export function clearSession(): void {
   localStorage.removeItem("agentarena_token");
 }
-

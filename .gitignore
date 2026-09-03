@@ -21,5 +21,22 @@ coverage/
 dist/
 build/
 
+# Local databases, container data, and browser-test artifacts
+*.db
+*.sqlite
+*.sqlite3
+.docker-data/
+docker-data/
+playwright-report/
+test-results/
+
+# Editor and OS temporary files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+~$*
+
 *.log
 .DS_Store

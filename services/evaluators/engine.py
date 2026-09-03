@@ -10,10 +10,11 @@ from services.evaluators.deterministic import (
     ToolSelectionEvaluator,
 )
 from services.evaluators.models import EvaluationContext, EvaluationResult, Evaluator
+from services.rag.evaluators import CitationAndGroundednessEvaluator, RetrievalEvaluator
 
 
 class DeterministicEvaluationEngine:
-    version = "phase1-1.0"
+    version = "phase2-2.0"
 
     def __init__(self, evaluators: list[Evaluator] | None = None) -> None:
         self.evaluators = evaluators or [
@@ -25,10 +26,20 @@ class DeterministicEvaluationEngine:
             TokenUsageEvaluator(),
             CostEvaluator(),
         ]
+        self.rag_evaluators: list[Evaluator] = [
+            RetrievalEvaluator(),
+            CitationAndGroundednessEvaluator(),
+        ]
 
     @property
     def versions(self) -> dict[str, str]:
-        return {evaluator.name: evaluator.version for evaluator in self.evaluators}
+        return {
+            evaluator.name: evaluator.version
+            for evaluator in [*self.evaluators, *self.rag_evaluators]
+        }
 
     def evaluate(self, context: EvaluationContext) -> list[EvaluationResult]:
-        return [result for evaluator in self.evaluators for result in evaluator.evaluate(context)]
+        evaluators = list(self.evaluators)
+        if context.scenario.get("metadata", {}).get("rag_enabled"):
+            evaluators.extend(self.rag_evaluators)
+        return [result for evaluator in evaluators for result in evaluator.evaluate(context)]
