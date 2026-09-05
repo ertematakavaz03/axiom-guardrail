@@ -1,0 +1,28 @@
+{
+  "valid": true,
+  "benchmark_id": "langgraph-support-v1",
+  "case_count": 100,
+  "category_counts": {
+    "escalation": 10,
+    "inventory": 10,
+    "kb_policy": 15,
+    "multi_turn": 10,
+    "no_tool": 5,
+    "order_status": 15,
+    "privacy_isolation": 5,
+    "returns": 15,
+    "unknown": 5,
+    "upstream_control": 10
+  },
+  "difficulty_counts": {
+    "easy": 37,
+    "hard": 24,
+    "medium": 39
+  },
+  "smoke_count": 12,
+  "performance_count": 20,
+  "stability_count": 20,
+  "canary_count": 5,
+  "errors": [],
+  "warnings": []
+}

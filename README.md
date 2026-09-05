@@ -186,6 +186,12 @@ The same acceptance story is asserted by `tests/integration/test_phase1_e2e.py` 
 
 Gold evidence can point to a document, immutable version, or exact chunk and carry graded relevance. Recall@k and MRR are computed when gold exists; nDCG is reported as `N/A` unless meaningful graded relevance exists. Citation existence verifies identifiers deterministically, support checks the cited chunk against extracted claims, and groundedness reports the supported factual-claim fraction.
 
+## External Benchmark #1
+
+Axiom evaluated the independently healthy [LangGraph Customer Support Agent](https://github.com/aperritano/langgraph-customer-support-agent) at pinned SHA `64dea789d7b59ae6a57470091d3dbf4ba43fe7cb` using local `llama3.1:latest`. Across 100 primary cases, the final audited result was 57 PASS / 0 WARN / 43 BLOCK, with 42 validated agent-failure cases and one excluded benchmark-expectation bug. Agent-quality results were 58.59% task success, 85.00% tool selection accuracy, 99.67% tool argument accuracy, 2.02% hallucination-case rate, and no cross-case synthetic-canary leakage observed. Primary p50/p95 latency was 22,702.50 / 46,687.70 ms.
+
+The separate 20-case × 3-repeat stability run measured 95% verdict, 100% tool-selection, 100% argument, 95% fact, and 90% hallucination consistency. These are observational local benchmark results—not an endorsement, partnership, certification, or production-capacity claim. See the [full reproducible report](docs/benchmarks/langgraph-support-v1-report.md).
+
 ## Generic HTTP agent contract
 
 Register an agent version with `adapter_type: generic_http` and an HTTPS `endpoint_url`. Axiom Guardrail sends:

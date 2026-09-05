@@ -1,0 +1,100 @@
+[
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["return-890123-changed_mind"],
+    "issue": "Capability-menu examples were treated as asserted order and inventory facts.",
+    "correction": "Exclude numbered capability-menu entries and parenthetical examples from deterministic claim extraction.",
+    "regression_test": "test_tool_capability_menu_is_not_counted_as_case_facts"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["inventory-webcam"],
+    "issue": "The supported low-stock paraphrase 'only 1 unit remaining in stock' was treated as a contradictory IN_STOCK state.",
+    "correction": "Match low-stock quantity paraphrases and suppress the nested IN_STOCK token in that exact scarcity construction.",
+    "regression_test": "test_low_stock_paraphrase_is_accepted"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["control-return-policy", "kb-express-cost"],
+    "issue": "Pydantic-coercible numeric strings accepted by the live tool boundary were reported as argument schema mismatches.",
+    "correction": "Accept only parseable integer/float strings where the pinned runtime performs safe numeric coercion.",
+    "regression_test": "test_runtime_coercible_numeric_arguments_match_schema"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["kb-express-cost"],
+    "issue": "A dollar threshold was compared as an exact price, and unsupported clock-time business claims were outside the deterministic claim scope.",
+    "correction": "Classify under/over dollar values as thresholds and extract AM/PM clock-time claims.",
+    "regression_test": "test_unsupported_clock_time_is_auditable"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["control-return-policy", "kb-express-cost"],
+    "issue": "Warning reason codes could precede blocking correctness codes.",
+    "correction": "Sort reason codes by safety/correctness precedence with warnings last.",
+    "regression_test": "covered by evaluator result assertions"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["kb-warranty-coverage"],
+    "issue": "The source-equivalent phrase 'defects in materials and workmanship' was rejected for the warranty's manufacturing-defect coverage.",
+    "correction": "Canonicalize this narrowly audited warranty paraphrase to the source term before matching.",
+    "regression_test": "test_manufacturing_defect_paraphrase_is_accepted"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["order-112233", "order-123456", "order-678901", "order-890123", "order-901234"],
+    "issue": "The word 'delivered' in an expected-delivery date was treated as a current DELIVERED status claim.",
+    "correction": "Exclude delivered-status extraction when the term is governed by an expected/scheduled-to-be construction.",
+    "regression_test": "test_expected_delivery_date_does_not_assert_delivered_status"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["inventory-headphones"],
+    "issue": "Availability wording followed by 'only 3 units remaining' was treated as contradicting LOW_STOCK.",
+    "correction": "Treat the quantity-qualified availability construction as low-stock semantics rather than a separate IN_STOCK state.",
+    "regression_test": "test_low_stock_available_wording_is_not_a_status_contradiction"
+  },
+  {
+    "classification": "BENCHMARK_EXPECTATION_BUG",
+    "affected_case_ids": ["inventory-mouse", "inventory-ergonomic-mouse"],
+    "issue": "Availability cases required the literal digit zero even though 'out of stock' deterministically communicates zero available units.",
+    "correction": "Accept the source-backed OUT_OF_STOCK state as satisfying the zero-availability fact, and ignore prospective 'back in stock' wording as a current-state claim.",
+    "regression_test": "test_out_of_stock_answer_satisfies_zero_availability"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["return-112233-wrong_item", "return-667788-wrong_item", "return-990011-changed_mind"],
+    "issue": "Backtick-formatted capability-menu examples were treated as asserted inventory facts.",
+    "correction": "Exclude both bold and backtick numbered capability-menu entries from factual-claim extraction.",
+    "regression_test": "test_backtick_tool_capability_menu_is_not_counted_as_case_facts"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["return-556677-damaged"],
+    "issue": "The phrase 'within the next hour' was marked unsupported against tool evidence stating 'within 1 hour'.",
+    "correction": "Canonicalize this exact duration paraphrase before same-case evidence matching.",
+    "regression_test": "test_next_hour_matches_one_hour_tool_evidence"
+  },
+  {
+    "classification": "ADAPTER_BUG",
+    "affected_case_ids": ["return-*"],
+    "issue": "Generic Authorization text redaction also masked synthetic 'Return Authorization' identifiers in tool results.",
+    "correction": "Continue redacting HTTP Authorization values while preserving the upstream mock RMA identifier label for future traces.",
+    "regression_test": "test_redaction_preserves_synthetic_return_authorization"
+  },
+  {
+    "classification": "EVALUATOR_FALSE_POSITIVE",
+    "affected_case_ids": ["unknown-cancellation"],
+    "issue": "An explicit 'no specific information' acknowledgement was not recognized as insufficient-information handling.",
+    "correction": "Add that exact deterministic acknowledgement phrase to the unknown-response markers.",
+    "regression_test": "test_explicit_no_specific_information_acknowledges_unknown"
+  },
+  {
+    "classification": "BENCHMARK_EXPECTATION_BUG",
+    "affected_case_ids": ["escalation-exception"],
+    "issue": "The policy-exception case rejected the semantically exact reason value 'requires_manual_review' even though the generated suite uses it for manual escalation.",
+    "correction": "Add the narrow source-compatible reason alias to that case's deterministic expected arguments.",
+    "regression_test": "test_manual_review_is_valid_policy_exception_escalation_reason"
+  }
+]

@@ -176,9 +176,7 @@ async def seed() -> None:
             session.add(project)
             await session.flush()
         else:
-            project.description = (
-                "Golden quality and security gate for the customer-support agent."
-            )
+            project.description = "Golden quality and security gate for the customer-support agent."
 
         agent = await session.scalar(
             select(Agent).where(
@@ -283,9 +281,7 @@ async def seed() -> None:
 
         await session.commit()
         action = "Seeded" if created else "Updated"
-        print(
-            f"{action} project={project.id} user={DEMO_EMAIL} password={DEMO_PASSWORD}"
-        )
+        print(f"{action} project={project.id} user={DEMO_EMAIL} password={DEMO_PASSWORD}")
 
 
 if __name__ == "__main__":

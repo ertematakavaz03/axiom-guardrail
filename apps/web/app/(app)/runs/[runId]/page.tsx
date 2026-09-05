@@ -40,6 +40,8 @@ export default function RunDetailPage() {
   );
   if (!run) return <Loading />;
   const metrics = run.metrics;
+  const external = metrics.external_benchmark;
+  const externalSnapshot = run.snapshot.external_benchmark;
   const percentage = (value: number | null | undefined) =>
     value === null || value === undefined ? "N/A" : `${Math.round(value * 1000) / 10}%`;
 
@@ -115,6 +117,29 @@ export default function RunDetailPage() {
         />
         <MetricCard label="Total tokens" value={metrics.total_tokens ?? "—"} />
       </section>
+      {external && externalSnapshot && (
+        <>
+          <section className="panel rag-run-context">
+            <div><span>External benchmark</span><strong>{String(externalSnapshot.benchmark_id)}</strong><code>{external.completed_execution_count} cases · {external.verdicts.pass} PASS / {external.verdicts.warn} WARN / {external.verdicts.block} BLOCK</code></div>
+            <div><span>Pinned source</span><strong>{String(externalSnapshot.external_repository)}</strong><code>{String(externalSnapshot.pinned_sha)}</code></div>
+            <div><span>Model</span><strong>{String(run.snapshot.agent?.model_name ?? "N/A")}</strong><code>Run → Case → Trace</code></div>
+            <div><span>Audit</span><strong>{external.audit.unresolved_case_count === 0 ? "Complete" : "Unresolved"}</strong><code>{external.audit.validated_agent_failure_case_count} validated failures</code></div>
+          </section>
+          <section className="metric-grid rag-metrics">
+            <MetricCard label="Task success" value={percentage(external.quality.task_success_rate)} />
+            <MetricCard label="Tool selection" value={percentage(external.quality.tool_selection_accuracy)} />
+            <MetricCard label="Required tool recall" value={percentage(external.quality.required_tool_recall)} />
+            <MetricCard label="Tool argument accuracy" value={percentage(external.quality.tool_argument_accuracy)} />
+            <MetricCard label="Grounded cases" value={percentage(external.hallucination.grounded_case_rate)} tone={(external.hallucination.grounded_case_rate ?? 1) < 1 ? "block" : "pass"} />
+            <MetricCard label="Hallucination cases" value={percentage(external.hallucination.hallucination_case_rate)} tone={(external.hallucination.hallucination_case_rate ?? 0) > 0 ? "block" : "pass"} />
+            <MetricCard label="Leakage rate" value={percentage(external.privacy_isolation.leakage_rate)} tone={external.privacy_isolation.leakage_cases ? "block" : "pass"} />
+            <MetricCard label="Completion rate" value={percentage(external.quality.completion_rate)} />
+            <MetricCard label="Malformed output rate" value={percentage(external.quality.malformed_output_rate)} tone={(external.quality.malformed_output_rate ?? 0) > 0 ? "block" : "pass"} />
+            <MetricCard label="p50 / p95 latency" value={external.performance.total_case_latency_ms.p95 == null ? "N/A" : `${Math.round(external.performance.total_case_latency_ms.p50 ?? 0)} / ${Math.round(external.performance.total_case_latency_ms.p95)} ms`} detail="Total case latency" />
+            <MetricCard label="Token usage" value={external.performance.token_counts.total_tokens ?? "N/A"} detail={`${external.performance.token_counts.input_tokens ?? "N/A"} input · ${external.performance.token_counts.output_tokens ?? "N/A"} output`} />
+          </section>
+        </>
+      )}
       {run.snapshot.rag && (
         <>
           <section className="panel rag-run-context">

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "run_id": "cca180db-100e-46fb-a3ed-9b19a53ba710",
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "performance",
+  "started_at": "2026-09-04T19:14:08.185608+00:00",
+  "finished_at": "2026-09-04T19:33:55.454128+00:00",
+  "status": "completed",
+  "base_url": "http://127.0.0.1:8123",
+  "timeout_seconds": 105.0,
+  "selected_case_ids": [
+    "control-payment-methods",
+    "control-order-123456",
+    "control-order-789012",
+    "control-inventory-mouse",
+    "control-inventory-laptop",
+    "kb-return-window",
+    "kb-standard-time",
+    "kb-express-time",
+    "kb-overnight-cost",
+    "kb-payment-processor",
+    "order-345678",
+    "order-567890",
+    "order-789012",
+    "order-112233",
+    "order-445566",
+    "inventory-laptop",
+    "inventory-headphones",
+    "inventory-mouse",
+    "inventory-keyboard",
+    "inventory-monitor"
+  ],
+  "selected_execution_count": 60,
+  "upstream": {
+    "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "graph_id": "agent"
+  },
+  "model": {
+    "name": "llama3.1:latest",
+    "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e"
+  },
+  "health": {
+    "info": {
+      "version": "0.13.3",
+      "langgraph_py_version": "1.2.11",
+      "flags": {
+        "assistants": true,
+        "crons": true,
+        "langsmith": false,
+        "langsmith_tracing_replicas": true,
+        "langsmith_tracing_session_on_runs": true
+      },
+      "host": {
+        "kind": "self-hosted",
+        "project_id": null,
+        "host_revision_id": null,
+        "revision_id": null,
+        "tenant_id": null
+      }
+    },
+    "ok": {
+      "ok": true
+    }
+  },
+  "warmup_excluded_ms": 89168,
+  "performance_batches": [
+    {
+      "concurrency": 1,
+      "completed_in_this_process": 20,
+      "wall_seconds": 457.85144310002215,
+      "resumed_partial_batch": false
+    },
+    {
+      "concurrency": 2,
+      "completed_in_this_process": 20,
+      "wall_seconds": 364.7537437999854,
+      "resumed_partial_batch": false
+    },
+    {
+      "concurrency": 4,
+      "completed_in_this_process": 20,
+      "wall_seconds": 364.6151504999725,
+      "resumed_partial_batch": false
+    }
+  ],
+  "resume_supported": true
+}

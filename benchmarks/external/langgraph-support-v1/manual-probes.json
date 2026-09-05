@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "purpose": "Live pre-integration protocol and observability probes; these are not benchmark score inputs.",
+  "api": {
+    "base_url": "http://127.0.0.1:8123",
+    "langgraph_api": "0.13.3",
+    "langgraph_python": "1.2.11",
+    "assistant_id": "agent",
+    "protocol": [
+      "POST /threads",
+      "POST /threads/{thread_id}/runs/wait",
+      "GET /threads/{thread_id}/history",
+      "GET /threads/{thread_id}/state"
+    ]
+  },
+  "probes": [
+    {
+      "name": "kb",
+      "prompt": "What is your return policy?",
+      "thread_id": "01a068a5-9c86-7633-9a01-5e35a3788dc9",
+      "elapsed_ms": 101141,
+      "setup_timing_excluded": true,
+      "setup_timing_note": "First server-process retrieval initialized the already-cached embedding model; probe latency is not benchmark latency.",
+      "messages": [
+        {"type": "human", "content": "What is your return policy?"},
+        {
+          "type": "ai",
+          "content": "",
+          "tool_calls": [
+            {
+              "name": "search_vector_knowledge_base",
+              "args": {"query": "return policy", "max_results": "5", "min_similarity_score": "0.5", "categories": "general"}
+            }
+          ],
+          "usage": {"input_tokens": 3601, "output_tokens": 44, "total_tokens": 3645}
+        },
+        {
+          "type": "tool",
+          "name": "search_vector_knowledge_base",
+          "status": "success",
+          "normalized_result": {
+            "query": "return policy",
+            "categories": ["general"],
+            "min_similarity": 0.5,
+            "items": [
+              {"rank": 1, "reported_similarity": 0.871, "category": "general", "type": "info", "content": "Customer Support Information: hours, contact methods, order modifications, price matching, and gift wrapping."},
+              {"rank": 2, "reported_similarity": 0.907, "category": "general", "type": "faq", "content": "Can I modify my order? Yes, within 1 hour; contact support with the order number."},
+              {"rank": 3, "reported_similarity": 0.929, "category": "general", "type": "faq", "content": "Business hours are Monday-Friday, 9 AM - 6 PM EST."},
+              {"rank": 4, "reported_similarity": 0.932, "category": "general", "type": "faq", "content": "Tracking is emailed after shipment; status is available with the order number."},
+              {"rank": 5, "reported_similarity": 0.941, "category": "general", "type": "faq", "content": "Price matching is offered for identical items from authorized retailers."}
+            ]
+          }
+        },
+        {
+          "type": "ai",
+          "content": "Our return policy is as follows:\n\n* You can modify your order within 1 hour of placing it. Contact our support team with your order number.\n* We offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.\n* If you need to return an item, please contact our support team and we'll guide you through the process.\n\nPlease note that our business hours are Monday-Friday, 9 AM - 6 PM EST. You can reach us through chat, email (support@store.com), or phone (1-800-SUPPORT).\n\nIf you have any further questions or concerns, feel free to ask!",
+          "usage": {"input_tokens": 1301, "output_tokens": 131, "total_tokens": 1432}
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "order",
+      "prompt": "What is the status of order 123456?",
+      "thread_id": "01a068a7-66e9-7691-a3d6-f610c1fa8a63",
+      "elapsed_ms": 14729,
+      "messages": [
+        {"type": "human", "content": "What is the status of order 123456?"},
+        {"type": "ai", "content": "", "tool_calls": [{"name": "get_order_status", "args": {"order_id": "123456"}}], "usage": {"input_tokens": 3605, "output_tokens": 20, "total_tokens": 3625}},
+        {"type": "tool", "name": "get_order_status", "status": "success", "content": "Order #123456 - In Transit; expected delivery Sep 05, 2026; tracking 1Z999AA10123456784; items Wireless Headphones and USB Cable."},
+        {"type": "ai", "content": "I've checked the status of your order #123456, and it's currently in transit. You can track the package using the provided tracking number. If you have any other questions or concerns, feel free to ask!", "usage": {"input_tokens": 833, "output_tokens": 45, "total_tokens": 878}}
+      ],
+      "errors": []
+    },
+    {
+      "name": "return",
+      "prompt": "Please return order 789012 because it arrived damaged.",
+      "thread_id": "01a068a7-a0a0-7932-a75e-d2ded1ad394f",
+      "elapsed_ms": 16557,
+      "messages": [
+        {"type": "human", "content": "Please return order 789012 because it arrived damaged."},
+        {"type": "ai", "content": "", "tool_calls": [{"name": "initiate_return", "args": {"order_id": "789012", "reason": "damaged"}}], "usage": {"input_tokens": 3606, "output_tokens": 27, "total_tokens": 3633}},
+        {"type": "tool", "name": "initiate_return", "status": "success", "content": "Return authorized for order 789012 as RMA-789012-066; damaged; Monitor Stand and Desk Mat; free label within 1 hour; refund 5-7 business days after receipt."},
+        {"type": "ai", "content": "send_greeting()", "usage": {"input_tokens": 968, "output_tokens": 5, "total_tokens": 973}}
+      ],
+      "errors": []
+    },
+    {
+      "name": "inventory",
+      "prompt": "Do you have keyboards in stock?",
+      "thread_id": "01a068a8-007c-7ba0-844e-a463feba87cc",
+      "elapsed_ms": 22953,
+      "messages": [
+        {"type": "human", "content": "Do you have keyboards in stock?"},
+        {"type": "ai", "content": "", "tool_calls": [{"name": "check_product_availability", "args": {"product_name": "keyboards"}}], "usage": {"input_tokens": 3602, "output_tokens": 21, "total_tokens": 3623}},
+        {"type": "tool", "name": "check_product_availability", "status": "success", "content": "Keyboard is in stock; 25 units; ready to ship within 1-2 business days."},
+        {"type": "ai", "content": "We have keyboards in stock! We have 25 units available, and they are ready to ship within 1-2 business days. Would you like to place an order or would you like more information?", "usage": {"input_tokens": 800, "output_tokens": 42, "total_tokens": 842}}
+      ],
+      "errors": []
+    },
+    {
+      "name": "escalation",
+      "prompt": "I am very frustrated and want to speak to a human.",
+      "thread_id": "01a068a8-5a57-7412-92e5-1894f0fc3e4c",
+      "elapsed_ms": 20903,
+      "messages": [
+        {"type": "human", "content": "I am very frustrated and want to speak to a human."},
+        {"type": "ai", "content": "", "tool_calls": [{"name": "escalate_to_human", "args": {"reason": "explicit_request", "customer_message": "I am very frustrated and want to speak to a human."}}], "usage": {"input_tokens": 3607, "output_tokens": 38, "total_tokens": 3645}},
+        {"type": "tool", "name": "escalate_to_human", "status": "success", "content": "Escalated to human support; TICKET-7959; assigned to agent; expected response within 15 minutes."},
+        {"type": "ai", "content": "You are no longer connected to me, but a human support specialist will be in touch with you soon.", "usage": {"input_tokens": 850, "output_tokens": 22, "total_tokens": 872}}
+      ],
+      "errors": []
+    }
+  ],
+  "observability_findings": {
+    "messages": true,
+    "tool_calls": true,
+    "tool_arguments": true,
+    "tool_results": true,
+    "final_response": true,
+    "thread_identity": true,
+    "token_usage": true,
+    "total_client_latency": true,
+    "queue_wait_from_response": false,
+    "per_tool_latency": false,
+    "retrieval_latency": false,
+    "streaming_ttft_measured": false,
+    "structured_citations": false
+  },
+  "benchmark_results_produced": false
+}

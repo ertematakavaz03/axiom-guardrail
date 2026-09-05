@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "mode": "observational",
+  "preventive_enforcement_claimed": false,
+  "tools": {
+    "list_available_functions": {"normalized_name": "list_available_functions", "kind": "read", "side_effect": false},
+    "send_greeting": {"normalized_name": "send_greeting", "kind": "read", "side_effect": false},
+    "search_vector_knowledge_base": {"normalized_name": "search_vector_knowledge_base", "kind": "retrieval", "side_effect": false},
+    "get_order_status": {"normalized_name": "get_order_status", "kind": "read", "side_effect": false},
+    "list_orders": {"normalized_name": "list_orders", "kind": "read", "side_effect": false},
+    "initiate_return": {"normalized_name": "initiate_return", "kind": "simulated_action", "side_effect": "simulated_non_persistent"},
+    "check_product_availability": {"normalized_name": "check_product_availability", "kind": "read", "side_effect": false},
+    "escalate_to_human": {"normalized_name": "escalate_to_human", "kind": "simulated_action", "side_effect": "local_log_only"}
+  },
+  "retrieval_documents": {
+    "kb-return-policy": "Return Policy:",
+    "kb-shipping-policy": "Shipping Options:",
+    "kb-warranty-policy": "Warranty Information:",
+    "kb-payment-policy": "Payment Information:",
+    "kb-product-categories": "Product Categories:",
+    "kb-product-headphones": "Wireless Headphones Pro",
+    "kb-product-keyboard": "Mechanical Gaming Keyboard",
+    "kb-product-mouse": "Ergonomic Mouse",
+    "kb-faq-tracking": "Question: How do I track my order?",
+    "kb-faq-modify": "Question: Can I modify my order?",
+    "kb-faq-price-match": "Question: Do you price match?",
+    "kb-faq-gift-wrap": "Question: Is gift wrapping available?",
+    "kb-faq-hours": "Question: What are your business hours?",
+    "kb-general-support": "Customer Support Information:"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-03T19:05:00Z",
+  "scope": "LangGraph server process sockets after five live probes",
+  "server": {
+    "pid": 15764,
+    "listen": {"address": "127.0.0.1", "port": 8123},
+    "established_destinations": [
+      {"address": "127.0.0.1", "port": 11434, "purpose": "local Ollama"},
+      {"address": "127.0.0.1", "purpose": "in-memory runtime loopback channel"}
+    ]
+  },
+  "unexpected_non_loopback_connections_observed": false,
+  "preparation_network": [
+    "Python package installation from configured package index",
+    "Unauthenticated download of sentence-transformers/all-MiniLM-L6-v2 from Hugging Face"
+  ],
+  "measured_run_controls": {
+    "hf_hub_offline": true,
+    "transformers_offline": true,
+    "langsmith_disabled": true,
+    "otel_export_disabled": true,
+    "no_browser": true,
+    "loopback_bind_only": true,
+    "paid_third_party_conversation_api_used": false
+  },
+  "limitation": "Socket sampling records observed process connections, not a formal host-wide egress proof."
+}

@@ -34,7 +34,10 @@ def reciprocal_rank_fusion(
             else:
                 current.sparse_score = hit.sparse_score
                 current.sparse_rank = rank
-    ranked = [hit.model_copy(update={"hybrid_score": scores[chunk_id]}) for chunk_id, hit in merged.items()]
+    ranked = [
+        hit.model_copy(update={"hybrid_score": scores[chunk_id]})
+        for chunk_id, hit in merged.items()
+    ]
     ranked.sort(key=lambda hit: hit.hybrid_score or 0.0, reverse=True)
     return [hit.model_copy(update={"rank": index + 1}) for index, hit in enumerate(ranked)]
 

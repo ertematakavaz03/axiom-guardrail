@@ -87,7 +87,10 @@ def decide_case_verdict(
         metric: not any(result.metric == metric and not result.passed for result in evaluations)
         for metric in {result.metric for result in evaluations}
     }
-    is_rag = any(result.metric.startswith("retrieval_") or result.metric == "groundedness" for result in evaluations)
+    is_rag = any(
+        result.metric.startswith("retrieval_") or result.metric == "groundedness"
+        for result in evaluations
+    )
     if is_rag:
         score = (
             20 * float(metric_pass.get("task_success", True))
@@ -121,9 +124,7 @@ def aggregate_run(cases: list[dict[str, Any]]) -> tuple[dict[str, Any], float, s
     count = len(cases)
     latencies = sorted(int(case.get("latency_ms") or 0) for case in cases)
     p95_index = max(0, math.ceil(0.95 * count) - 1)
-    primary_reasons = Counter(
-        case["reason_codes"][0] for case in cases if case.get("reason_codes")
-    )
+    primary_reasons = Counter(case["reason_codes"][0] for case in cases if case.get("reason_codes"))
     all_findings = Counter(reason for case in cases for reason in case.get("reason_codes", []))
     total_tokens = sum(int(case.get("total_tokens") or 0) for case in cases)
     total_cost = sum(float(case.get("estimated_cost") or 0) for case in cases)
@@ -187,9 +188,7 @@ def aggregate_run(cases: list[dict[str, Any]]) -> tuple[dict[str, Any], float, s
         )
     block_count = sum(case.get("verdict") == "block" for case in cases)
     verdict = (
-        "block"
-        if block_count or security_count
-        else ("warn" if pass_count < count else "pass")
+        "block" if block_count or security_count else ("warn" if pass_count < count else "pass")
     )
     metrics = {
         "task_success": round(quality * 100, 2),

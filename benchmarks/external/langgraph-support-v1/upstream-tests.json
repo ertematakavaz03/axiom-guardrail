@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-03T18:56:30.3926095Z",
+  "upstream_commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+  "python": "3.12.10",
+  "environment": "scrubbed child-process environment; local Ollama only",
+  "suites": [
+    {
+      "name": "non_llm",
+      "selection": [
+        "src/support_agent/tests/test_tools.py",
+        "src/support_agent/tests/test_state.py",
+        "src/support_agent/tests/test_agent.py::TestShouldContinue",
+        "src/support_agent/tests/test_agent.py::TestGraphCreation::test_create_graph_returns_compiled_graph",
+        "src/support_agent/tests/test_agent.py::TestGraphCreation::test_graph_has_required_nodes"
+      ],
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 1.33,
+      "classification": "PASS"
+    },
+    {
+      "name": "ollama_dependent",
+      "selection": [
+        "src/support_agent/tests/test_agent.py::TestAgentNode",
+        "src/support_agent/tests/test_agent.py::TestGraphCreation::test_graph_invoke_with_simple_message",
+        "src/support_agent/tests/test_agent.py::TestGraphIntegration"
+      ],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 119.98,
+      "model": "llama3.1:latest",
+      "classification": "PASS"
+    }
+  ],
+  "summary": {
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0,
+    "upstream_bugs": 0,
+    "dependency_or_environment_issues": 0,
+    "model_dependent_failures": 0
+  },
+  "benchmark_results_produced": false
+}

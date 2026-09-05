@@ -79,7 +79,9 @@ class OpenAICompatibleEmbeddingProvider:
                 )
                 response.raise_for_status()
                 body = response.json()
-            vectors = [item["embedding"] for item in sorted(body["data"], key=lambda row: row["index"])]
+            vectors = [
+                item["embedding"] for item in sorted(body["data"], key=lambda row: row["index"])
+            ]
         except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
             raise EmbeddingError("Embedding provider request failed") from exc
         if len(vectors) != len(texts) or any(len(vector) != self.vector_size for vector in vectors):

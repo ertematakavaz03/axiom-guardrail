@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "stability",
+  "updated_at": "2026-09-05T00:24:10.351220+00:00",
+  "selected_execution_count": 60,
+  "completed_execution_count": 60,
+  "verdicts": {
+    "pass": 31,
+    "warn": 0,
+    "block": 29
+  },
+  "quality": {
+    "eligible_case_count": 60,
+    "excluded_case_count": 0,
+    "task_success_rate": 0.5166666666666667,
+    "tool_selection_accuracy": 0.95,
+    "required_tool_recall": 1.0,
+    "unexpected_tool_rate": 0.0,
+    "forbidden_tool_rate": 0.0,
+    "tool_argument_accuracy": 1.0,
+    "required_argument_accuracy": 1.0,
+    "fact_accuracy": 0.5873015873015873,
+    "expected_fact_accuracy": 0.5873015873015873,
+    "escalation_accuracy": 0.5,
+    "kb_answer_accuracy": 0.6666666666666666,
+    "order_status_accuracy": 0.7777777777777778,
+    "inventory_accuracy": 1.0,
+    "return_flow_accuracy": 0.0,
+    "multi_turn_context_accuracy": 0.0,
+    "insufficient_information_accuracy": null,
+    "completion_rate": 1.0,
+    "timeout_rate": 0.0,
+    "agent_error_rate": 0.0,
+    "tool_error_rate": 0.0,
+    "retry_rate": 0.0,
+    "malformed_output_rate": 0.23333333333333334,
+    "retrieval_failure_rate": 0.0
+  },
+  "hallucination": {
+    "factual_claim_count": 66,
+    "supported_factual_claims": 66,
+    "contradicted_claims": 0,
+    "unsupported_claims": 0,
+    "fabricated_entities_or_values": 0,
+    "hallucination_case_rate": 0.0,
+    "unsupported_claim_rate": 0.0,
+    "grounded_case_rate": 1.0,
+    "scope": "deterministically extractable business values and identifiers"
+  },
+  "privacy_isolation": {
+    "evaluated_cases": 0,
+    "leakage_cases": 0,
+    "leakage_rate": null,
+    "memory_isolation_pass_rate": null
+  },
+  "retrieval": {
+    "evaluated_cases": 12,
+    "document_id_origin": "benchmark_derived_from_exact_returned_content",
+    "recall_at_1": 0.0,
+    "recall_at_3": 0.0,
+    "recall_at_5": 0.0,
+    "mrr": 0.0,
+    "ndcg": 0.0,
+    "citation_precision": null,
+    "citation_recall": null,
+    "citation_status": "N/A_no_structured_citations"
+  },
+  "performance": {
+    "total_case_latency_ms": {
+      "mean": 30852.183333333334,
+      "median": 23781.5,
+      "p50": 23781.5,
+      "p90": 44492.200000000004,
+      "p95": 47343.4,
+      "p99": 146971.11999999988,
+      "min": 19470.0,
+      "max": 168938.0
+    },
+    "model_latency_ms": {
+      "mean": 27455.0012,
+      "median": 23043.290500000003,
+      "p50": 23043.290500000003,
+      "p90": 40516.5402,
+      "p95": 44969.01525,
+      "p99": 74417.84802999978,
+      "min": 18746.047,
+      "max": 114667.107
+    },
+    "model_latency_status": "measured_from_ollama_response_metadata",
+    "queue_wait_ms": null,
+    "queue_wait_status": "N/A_not_returned_by_wait_protocol",
+    "tool_latency_ms": null,
+    "tool_latency_status": "N/A_not_exposed",
+    "retrieval_latency_ms": null,
+    "retrieval_latency_status": "N/A_not_exposed",
+    "time_to_first_token_ms": null,
+    "time_to_first_token_status": "N/A_non_streaming_wait_protocol",
+    "warmup_excluded_ms": 89168,
+    "retry_count": {
+      "total": 0,
+      "mean_per_case": 0.0
+    },
+    "tool_call_count": {
+      "total": 63,
+      "mean_per_case": 1.05
+    },
+    "token_counts": {
+      "input_tokens": 287571,
+      "output_tokens": 3920,
+      "total_tokens": 291491
+    },
+    "token_counts_status": "measured_from_model_usage_metadata"
+  },
+  "errors": {
+    "execution_errors": 0,
+    "timeouts": 0
+  },
+  "audit": {
+    "pending_non_pass_cases": 29,
+    "completed": false
+  }
+}

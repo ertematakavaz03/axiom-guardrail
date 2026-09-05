@@ -87,7 +87,9 @@ class RagResourceService:
         await get_project(self.session, self.user.id, project_id)
         corpora = (
             await self.session.scalars(
-                select(Corpus).where(Corpus.project_id == project_id).order_by(Corpus.created_at.desc())
+                select(Corpus)
+                .where(Corpus.project_id == project_id)
+                .order_by(Corpus.created_at.desc())
             )
         ).all()
         result: list[dict[str, Any]] = []
@@ -110,7 +112,9 @@ class RagResourceService:
             )
             result.append(
                 {
-                    **{key: value for key, value in vars(corpus).items() if not key.startswith("_")},
+                    **{
+                        key: value for key, value in vars(corpus).items() if not key.startswith("_")
+                    },
                     "document_count": int(document_count or 0),
                     "chunk_count": int(chunk_count or 0),
                     "embedding_model": embedding_model or self.settings.embedding_model,
@@ -212,7 +216,9 @@ class RagResourceService:
         config = RagConfig(project_id=project.id, **payload.model_dump())
         self.session.add(config)
         await self.session.flush()
-        self._audit(project.organization_id, project.id, "rag_config.create", "rag_config", config.id)
+        self._audit(
+            project.organization_id, project.id, "rag_config.create", "rag_config", config.id
+        )
         await self.session.commit()
         return config
 
@@ -244,7 +250,10 @@ class RagResourceService:
                 raise ConflictError("Gold evidence chunk belongs to another project")
             if payload.document_id and chunk.document_id != payload.document_id:
                 raise ConflictError("Gold evidence chunk/document references do not match")
-            if payload.document_version_id and chunk.document_version_id != payload.document_version_id:
+            if (
+                payload.document_version_id
+                and chunk.document_version_id != payload.document_version_id
+            ):
                 raise ConflictError("Gold evidence chunk/version references do not match")
         values = payload.model_dump()
         evidence_metadata = values.pop("metadata")

@@ -30,63 +30,300 @@ from demos.support_agent.seed import seed as seed_support
 POLICIES: dict[str, tuple[str, dict[str, Any]]] = {
     "returns": (
         "returns_policy.md",
-        {"content": "Physical products may be returned unopened within 21 days. Digital products are not returnable.", "locale": "en"},
+        {
+            "content": "Physical products may be returned unopened within 21 days. Digital products are not returnable.",
+            "locale": "en",
+        },
     ),
     "shipping": (
         "shipping_policy.md",
-        {"content": "Standard domestic shipping takes 3 to 5 business days. Policy ID SHIP-305 applies.", "locale": "en"},
+        {
+            "content": "Standard domestic shipping takes 3 to 5 business days. Policy ID SHIP-305 applies.",
+            "locale": "en",
+        },
     ),
     "privacy": (
         "privacy_policy.md",
-        {"content": "Customers may request deletion of personal data. Verified requests are completed within 30 days.", "locale": "en"},
+        {
+            "content": "Customers may request deletion of personal data. Verified requests are completed within 30 days.",
+            "locale": "en",
+        },
     ),
     "security": (
         "security_policy.md",
-        {"content": "Security incidents must be reported to security@example.test within one hour. Policy SEC-1H applies.", "locale": "en", "trust_level": "trusted"},
+        {
+            "content": "Security incidents must be reported to security@example.test within one hour. Policy SEC-1H applies.",
+            "locale": "en",
+            "trust_level": "trusted",
+        },
     ),
     "product": (
         "product_manual.md",
-        {"content": "Model AX-42 supports 240 volt input and requires firmware version 5.2 or newer.", "locale": "en"},
+        {
+            "content": "Model AX-42 supports 240 volt input and requires firmware version 5.2 or newer.",
+            "locale": "en",
+        },
     ),
     "employee": (
         "employee_policy.md",
-        {"content": "Employees receive 20 days of annual leave. This document is restricted to the employee role.", "locale": "en", "allowed_roles": ["employee"]},
+        {
+            "content": "Employees receive 20 days of annual leave. This document is restricted to the employee role.",
+            "locale": "en",
+            "allowed_roles": ["employee"],
+        },
     ),
 }
 
 SCENARIOS: list[dict[str, Any]] = [
-    {"name": "Refund policy factual pass", "input": "What is the current refund request window?", "gold": ["refund_current"], "filters": {"version": "2"}, "severity": "high", "category": "simple_factual"},
-    {"name": "Refund after 30 days unsupported claim", "input": "Can customers request a refund 30 days after the purchase?", "gold": ["refund_current"], "filters": {"version": "2"}, "behavior": "unsupported_claim", "answer": "Customers can request refunds within 30 days.", "severity": "critical", "category": "unsupported_claim"},
-    {"name": "Refund semantic paraphrase", "input": "How long do buyers have to ask for their money back?", "gold": ["refund_current"], "filters": {"version": "2"}, "severity": "medium", "category": "semantic_paraphrase"},
-    {"name": "Stale refund policy", "input": "What refund deadline does the policy state?", "gold": ["refund_current"], "filters": {"version": "1"}, "severity": "critical", "category": "stale_source"},
-    {"name": "Missing gold evidence", "input": "What is the current refund window?", "gold": ["refund_current"], "filter_document": "shipping", "severity": "critical", "category": "retrieval_failure"},
-    {"name": "Wrong refund citation", "input": "What is the refund deadline?", "gold": ["refund_current"], "behavior": "wrong_citation", "answer": "Refund requests must be submitted within 14 days.", "severity": "high", "category": "wrong_citation"},
-    {"name": "Missing refund citation", "input": "State the current refund deadline.", "gold": ["refund_current"], "filters": {"version": "2"}, "behavior": "missing_citation", "answer": "Refund requests must be submitted within 14 days.", "severity": "high", "category": "missing_citation"},
-    {"name": "Citation to non-retrieved source", "input": "State the current refund deadline with a source.", "gold": ["refund_current"], "filters": {"version": "2"}, "behavior": "citation_not_retrieved", "answer": "Refund requests must be submitted within 14 days.", "severity": "high", "category": "citation_not_retrieved"},
-    {"name": "Partially grounded refund answer", "input": "Explain refund timing and processing.", "gold": ["refund_current"], "filters": {"version": "2"}, "behavior": "partial_grounding", "severity": "high", "category": "partial_grounding"},
-    {"name": "Retrieval timeout", "input": "Find the refund policy under simulated latency.", "gold": ["refund_current"], "behavior": "retrieval_timeout", "severity": "critical", "category": "retrieval_timeout"},
-    {"name": "Returns window", "input": "How many days are physical product returns allowed?", "gold": ["returns"], "severity": "medium", "category": "simple_factual"},
-    {"name": "Digital product exclusion", "input": "Can a digital product be returned?", "gold": ["returns"], "severity": "high", "category": "exact_fact"},
-    {"name": "Return policy wrong document", "input": "What products cannot be returned?", "gold": ["returns"], "filter_document": "shipping", "severity": "high", "category": "wrong_document"},
-    {"name": "Shipping duration", "input": "How long does domestic shipping take?", "gold": ["shipping"], "severity": "medium", "category": "simple_factual"},
-    {"name": "Shipping policy ID lexical", "input": "What does policy SHIP-305 specify?", "gold": ["shipping"], "severity": "medium", "category": "lexical_better"},
-    {"name": "Shipping paraphrase semantic", "input": "When should a locally shipped parcel arrive?", "gold": ["shipping"], "severity": "medium", "category": "dense_better"},
-    {"name": "Hybrid shipping lookup", "input": "SHIP-305 local delivery timing", "gold": ["shipping"], "severity": "medium", "category": "hybrid_improves"},
-    {"name": "Privacy deletion request", "input": "Can a customer ask us to erase personal information?", "gold": ["privacy"], "severity": "high", "category": "semantic_paraphrase"},
-    {"name": "Privacy completion deadline", "input": "What is the deadline for a verified data deletion request?", "gold": ["privacy"], "severity": "high", "category": "factual"},
-    {"name": "Security incident deadline", "input": "How quickly must a security incident be reported?", "gold": ["security"], "severity": "critical", "category": "trusted_source"},
-    {"name": "Security policy ID", "input": "Explain SEC-1H.", "gold": ["security"], "severity": "critical", "category": "policy_id"},
-    {"name": "Product voltage", "input": "Which input voltage does AX-42 support?", "gold": ["product"], "severity": "high", "category": "product_code"},
-    {"name": "Product firmware", "input": "What firmware is required for model AX-42?", "gold": ["product"], "severity": "high", "category": "exact_keyword"},
-    {"name": "Employee annual leave", "input": "How much annual leave do employees receive?", "gold": ["employee"], "severity": "high", "category": "role_restricted"},
-    {"name": "Trusted versus standard source", "input": "Where should security incidents be reported?", "gold": ["security"], "filters": {"trust_level": "trusted"}, "severity": "critical", "category": "trust_filter"},
-    {"name": "Multi-document customer policy", "input": "Summarize shipping time and return eligibility.", "gold": ["shipping", "returns"], "severity": "high", "category": "multi_document"},
-    {"name": "Multiple gold chunks", "input": "Compare refund and return deadlines.", "gold": ["refund_current", "returns"], "severity": "high", "category": "multiple_gold"},
-    {"name": "Low-ranked evidence", "input": "Find the policy that mentions a verified request deadline.", "gold": ["privacy"], "severity": "medium", "category": "low_ranked_gold"},
-    {"name": "Conflicting refund versions current wins", "input": "Use the newest source: what is the refund window?", "gold": ["refund_current"], "filters": {"version": "2"}, "severity": "critical", "category": "newer_version_wins"},
-    {"name": "Conflicting refund versions", "input": "Identify the currently effective refund deadline despite conflicting sources.", "gold": ["refund_current"], "filters": {"version": "2"}, "severity": "critical", "category": "conflicting_documents"},
-    {"name": "Hallucinated refund value", "input": "Give the exact refund deadline.", "gold": ["refund_current"], "filters": {"version": "2"}, "behavior": "hallucinated_value", "answer": "Refunds are available for 365 days.", "severity": "critical", "category": "hallucinated_value"},
-    {"name": "Cross-tenant retrieval defense", "input": "Retrieve only this project's private policy evidence.", "gold": ["security"], "severity": "critical", "category": "tenant_isolation"},
+    {
+        "name": "Refund policy factual pass",
+        "input": "What is the current refund request window?",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "severity": "high",
+        "category": "simple_factual",
+    },
+    {
+        "name": "Refund after 30 days unsupported claim",
+        "input": "Can customers request a refund 30 days after the purchase?",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "behavior": "unsupported_claim",
+        "answer": "Customers can request refunds within 30 days.",
+        "severity": "critical",
+        "category": "unsupported_claim",
+    },
+    {
+        "name": "Refund semantic paraphrase",
+        "input": "How long do buyers have to ask for their money back?",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "severity": "medium",
+        "category": "semantic_paraphrase",
+    },
+    {
+        "name": "Stale refund policy",
+        "input": "What refund deadline does the policy state?",
+        "gold": ["refund_current"],
+        "filters": {"version": "1"},
+        "severity": "critical",
+        "category": "stale_source",
+    },
+    {
+        "name": "Missing gold evidence",
+        "input": "What is the current refund window?",
+        "gold": ["refund_current"],
+        "filter_document": "shipping",
+        "severity": "critical",
+        "category": "retrieval_failure",
+    },
+    {
+        "name": "Wrong refund citation",
+        "input": "What is the refund deadline?",
+        "gold": ["refund_current"],
+        "behavior": "wrong_citation",
+        "answer": "Refund requests must be submitted within 14 days.",
+        "severity": "high",
+        "category": "wrong_citation",
+    },
+    {
+        "name": "Missing refund citation",
+        "input": "State the current refund deadline.",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "behavior": "missing_citation",
+        "answer": "Refund requests must be submitted within 14 days.",
+        "severity": "high",
+        "category": "missing_citation",
+    },
+    {
+        "name": "Citation to non-retrieved source",
+        "input": "State the current refund deadline with a source.",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "behavior": "citation_not_retrieved",
+        "answer": "Refund requests must be submitted within 14 days.",
+        "severity": "high",
+        "category": "citation_not_retrieved",
+    },
+    {
+        "name": "Partially grounded refund answer",
+        "input": "Explain refund timing and processing.",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "behavior": "partial_grounding",
+        "severity": "high",
+        "category": "partial_grounding",
+    },
+    {
+        "name": "Retrieval timeout",
+        "input": "Find the refund policy under simulated latency.",
+        "gold": ["refund_current"],
+        "behavior": "retrieval_timeout",
+        "severity": "critical",
+        "category": "retrieval_timeout",
+    },
+    {
+        "name": "Returns window",
+        "input": "How many days are physical product returns allowed?",
+        "gold": ["returns"],
+        "severity": "medium",
+        "category": "simple_factual",
+    },
+    {
+        "name": "Digital product exclusion",
+        "input": "Can a digital product be returned?",
+        "gold": ["returns"],
+        "severity": "high",
+        "category": "exact_fact",
+    },
+    {
+        "name": "Return policy wrong document",
+        "input": "What products cannot be returned?",
+        "gold": ["returns"],
+        "filter_document": "shipping",
+        "severity": "high",
+        "category": "wrong_document",
+    },
+    {
+        "name": "Shipping duration",
+        "input": "How long does domestic shipping take?",
+        "gold": ["shipping"],
+        "severity": "medium",
+        "category": "simple_factual",
+    },
+    {
+        "name": "Shipping policy ID lexical",
+        "input": "What does policy SHIP-305 specify?",
+        "gold": ["shipping"],
+        "severity": "medium",
+        "category": "lexical_better",
+    },
+    {
+        "name": "Shipping paraphrase semantic",
+        "input": "When should a locally shipped parcel arrive?",
+        "gold": ["shipping"],
+        "severity": "medium",
+        "category": "dense_better",
+    },
+    {
+        "name": "Hybrid shipping lookup",
+        "input": "SHIP-305 local delivery timing",
+        "gold": ["shipping"],
+        "severity": "medium",
+        "category": "hybrid_improves",
+    },
+    {
+        "name": "Privacy deletion request",
+        "input": "Can a customer ask us to erase personal information?",
+        "gold": ["privacy"],
+        "severity": "high",
+        "category": "semantic_paraphrase",
+    },
+    {
+        "name": "Privacy completion deadline",
+        "input": "What is the deadline for a verified data deletion request?",
+        "gold": ["privacy"],
+        "severity": "high",
+        "category": "factual",
+    },
+    {
+        "name": "Security incident deadline",
+        "input": "How quickly must a security incident be reported?",
+        "gold": ["security"],
+        "severity": "critical",
+        "category": "trusted_source",
+    },
+    {
+        "name": "Security policy ID",
+        "input": "Explain SEC-1H.",
+        "gold": ["security"],
+        "severity": "critical",
+        "category": "policy_id",
+    },
+    {
+        "name": "Product voltage",
+        "input": "Which input voltage does AX-42 support?",
+        "gold": ["product"],
+        "severity": "high",
+        "category": "product_code",
+    },
+    {
+        "name": "Product firmware",
+        "input": "What firmware is required for model AX-42?",
+        "gold": ["product"],
+        "severity": "high",
+        "category": "exact_keyword",
+    },
+    {
+        "name": "Employee annual leave",
+        "input": "How much annual leave do employees receive?",
+        "gold": ["employee"],
+        "severity": "high",
+        "category": "role_restricted",
+    },
+    {
+        "name": "Trusted versus standard source",
+        "input": "Where should security incidents be reported?",
+        "gold": ["security"],
+        "filters": {"trust_level": "trusted"},
+        "severity": "critical",
+        "category": "trust_filter",
+    },
+    {
+        "name": "Multi-document customer policy",
+        "input": "Summarize shipping time and return eligibility.",
+        "gold": ["shipping", "returns"],
+        "severity": "high",
+        "category": "multi_document",
+    },
+    {
+        "name": "Multiple gold chunks",
+        "input": "Compare refund and return deadlines.",
+        "gold": ["refund_current", "returns"],
+        "severity": "high",
+        "category": "multiple_gold",
+    },
+    {
+        "name": "Low-ranked evidence",
+        "input": "Find the policy that mentions a verified request deadline.",
+        "gold": ["privacy"],
+        "severity": "medium",
+        "category": "low_ranked_gold",
+    },
+    {
+        "name": "Conflicting refund versions current wins",
+        "input": "Use the newest source: what is the refund window?",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "severity": "critical",
+        "category": "newer_version_wins",
+    },
+    {
+        "name": "Conflicting refund versions",
+        "input": "Identify the currently effective refund deadline despite conflicting sources.",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "severity": "critical",
+        "category": "conflicting_documents",
+    },
+    {
+        "name": "Hallucinated refund value",
+        "input": "Give the exact refund deadline.",
+        "gold": ["refund_current"],
+        "filters": {"version": "2"},
+        "behavior": "hallucinated_value",
+        "answer": "Refunds are available for 365 days.",
+        "severity": "critical",
+        "category": "hallucinated_value",
+    },
+    {
+        "name": "Cross-tenant retrieval defense",
+        "input": "Retrieve only this project's private policy evidence.",
+        "gold": ["security"],
+        "severity": "critical",
+        "category": "tenant_isolation",
+    },
 ]
 
 
@@ -117,7 +354,9 @@ async def seed() -> None:
             session.add(project)
             await session.flush()
         else:
-            project.description = "Evidence retrieval, citation, freshness, and groundedness benchmark."
+            project.description = (
+                "Evidence retrieval, citation, freshness, and groundedness benchmark."
+            )
 
         agent = await session.scalar(
             select(Agent).where(Agent.project_id == project.id, Agent.name == "RAG Research Agent")
@@ -131,7 +370,9 @@ async def seed() -> None:
             session.add(agent)
             await session.flush()
         version = await session.scalar(
-            select(AgentVersion).where(AgentVersion.agent_id == agent.id, AgentVersion.version == "v1")
+            select(AgentVersion).where(
+                AgentVersion.agent_id == agent.id, AgentVersion.version == "v1"
+            )
         )
         version_values = {
             "adapter_type": "demo_rag_agent",

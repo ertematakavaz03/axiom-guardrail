@@ -316,7 +316,9 @@ class LatencyEvaluator:
                 "Case latency was within its timeout"
                 if passed
                 else "Case exceeded or failed its timeout",
-                reason_code=None if passed else ("TOOL_TIMEOUT" if tool_timeout else "CASE_TIMEOUT"),
+                reason_code=None
+                if passed
+                else ("TOOL_TIMEOUT" if tool_timeout else "CASE_TIMEOUT"),
                 expected={"max_ms": limit_ms},
                 actual={"latency_ms": latency},
                 value=float(latency),

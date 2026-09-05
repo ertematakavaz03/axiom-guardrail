@@ -39,12 +39,22 @@ export default function CaseTracePage() {
   );
   if (!bundle) return <Loading />;
   const primaryReason = bundle.case.reason_codes[0];
-  const evidenceTrace = bundle.traces.find((trace) => trace.event_type === "retrieval_evidence_selected");
+  const benchmarkExpectation = bundle.traces.find(
+    (trace) => trace.event_type === "external_benchmark_expectation",
+  );
+  const evidenceTrace = bundle.traces.find((trace) =>
+    ["retrieval_evidence_selected", "external_retrieval_observed"].includes(trace.event_type),
+  );
+  const isExternalCase = bundle.traces.some(
+    (trace) => trace.event_type === "external_turn_completed",
+  );
+  const isExternalEvidence = evidenceTrace?.event_type === "external_retrieval_observed";
   const retrievalFailure = bundle.traces.find((trace) => trace.event_type === "retrieval_failed");
   const claims = bundle.traces.filter((trace) => trace.event_type === "claim_extracted");
   const citations = bundle.traces.filter((trace) => trace.event_type === "citation_emitted");
-  const evidenceHits = Array.isArray(evidenceTrace?.payload.hits)
-    ? evidenceTrace.payload.hits.filter(
+  const rawEvidenceHits = evidenceTrace?.payload.hits ?? evidenceTrace?.payload.items;
+  const evidenceHits = Array.isArray(rawEvidenceHits)
+    ? rawEvidenceHits.filter(
         (hit): hit is Record<string, unknown> => typeof hit === "object" && hit !== null,
       )
     : [];
@@ -75,11 +85,25 @@ export default function CaseTracePage() {
           <StatusBadge value={bundle.case.verdict ?? bundle.case.status} />
         }
       />
+      {benchmarkExpectation && (
+        <section className="panel spaced">
+          <div className="panel-title">
+            <div><span className="eyebrow">EXTERNAL BENCHMARK CASE</span><h2>Expected vs observed</h2></div>
+            <StatusBadge value={bundle.case.verdict ?? bundle.case.status} />
+          </div>
+          <div className="eval-list">
+            <article><header><strong>Actual input</strong></header><p>{String(benchmarkExpectation.payload.actual_input ?? "N/A")}</p></article>
+            <article><header><strong>Expected behavior</strong></header><pre>{JSON.stringify({ expected_tools: benchmarkExpectation.payload.expected_tools, expected_tool_arguments: benchmarkExpectation.payload.expected_tool_arguments, expected_facts: benchmarkExpectation.payload.expected_facts, expected_unknown: benchmarkExpectation.payload.expected_unknown }, null, 2)}</pre></article>
+            <article><header><strong>Actual final response</strong></header><p>{bundle.case.final_response || "N/A"}</p></article>
+            <article><header><strong>Audit classification</strong></header><code>{String(benchmarkExpectation.payload.audit_classification ?? "N/A")}</code><p>{bundle.case.reason_codes.length ? bundle.case.reason_codes.join(" · ") : "No findings"}</p></article>
+          </div>
+        </section>
+      )}
       {isRagCase && (
         <section className="rag-evidence-flow panel">
-          <div className="panel-title"><div><span className="eyebrow">RAG EVIDENCE FLOW</span><h2>Retrieval → answer → citation → verdict</h2></div></div>
+          <div className="panel-title"><div><span className="eyebrow">{isExternalCase ? "EXTERNAL EVIDENCE FLOW" : "RAG EVIDENCE FLOW"}</span><h2>Retrieval → answer → citation → verdict</h2></div></div>
           <div className="evidence-flow-grid">
-            <article><span>01 · RETRIEVAL</span><strong>{retrievalFailure ? "Failed" : `${evidenceHits.length} evidence chunks`}</strong>{retrievalFailure ? <pre>{JSON.stringify(retrievalFailure.payload, null, 2)}</pre> : <div className="source-links">{evidenceHits.map((hit, index) => <Link href={`/documents/${String(hit.document_id)}`} key={String(hit.chunk_id)}><b>#{index + 1} {String(hit.document_name || "Source document")}</b><code>chunk {String(hit.chunk_id).slice(0, 8)} · inspect source →</code></Link>)}</div>}</article>
+            <article><span>01 · RETRIEVAL</span><strong>{retrievalFailure ? "Failed" : `${evidenceHits.length} evidence chunks`}</strong>{retrievalFailure ? <pre>{JSON.stringify(retrievalFailure.payload, null, 2)}</pre> : <div className="source-links">{evidenceHits.map((hit, index) => isExternalEvidence ? <div key={`${String(hit.document_id)}-${index}`}><b>#{index + 1} {String(hit.document_id || "Unmapped source")}</b><code>rank {String(hit.rank ?? index + 1)} · benchmark-derived ID</code></div> : <Link href={`/documents/${String(hit.document_id)}`} key={String(hit.chunk_id)}><b>#{index + 1} {String(hit.document_name || "Source document")}</b><code>chunk {String(hit.chunk_id).slice(0, 8)} · inspect source →</code></Link>)}</div>}</article>
             <i>→</i>
             <article><span>02 · AGENT ANSWER</span><strong>{claims.length} extracted claims</strong><p>{bundle.case.final_response || "No final response"}</p><pre>{JSON.stringify(claims.map((claim) => claim.payload), null, 2)}</pre></article>
             <i>→</i>

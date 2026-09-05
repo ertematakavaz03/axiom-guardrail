@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-03T18:56:30.3926095Z",
+  "host": {
+    "os": "Microsoft Windows 11 Home Single Language",
+    "os_version": "10.0.26200",
+    "architecture": "64 bit",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "physical_cores": 14,
+    "logical_processors": 20,
+    "memory_bytes": 34011467776,
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "gpu_memory_mib": 6144,
+    "nvidia_driver": "592.82"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "virtual_environment": ".venv312",
+    "pip_check": "No broken requirements found.",
+    "docker_engine": "29.7.2",
+    "docker_compose": "5.4.0",
+    "ollama": "0.33.2"
+  },
+  "model": {
+    "name": "llama3.1:latest",
+    "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+    "size_bytes": 4920753328,
+    "format": "gguf",
+    "family": "llama",
+    "parameter_size": "8.0B",
+    "quantization": "Q4_K_M",
+    "capabilities": ["completion", "tools"],
+    "api_base_url": "http://localhost:11434"
+  },
+  "warmup": {
+    "completed": true,
+    "wall_ms": 89168,
+    "excluded_from_all_measured_results": true
+  },
+  "resolved_core_packages": {
+    "langgraph": "1.2.11",
+    "langchain-core": "1.6.1",
+    "langchain-ollama": "1.1.0",
+    "sentence-transformers": "6.0.1",
+    "pytest": "9.1.1",
+    "langgraph-cli": "0.4.31",
+    "langgraph-api": "0.13.3",
+    "langgraph-runtime-inmem": "0.33.3"
+  },
+  "dependency_note": "Upstream specifies broad minimum versions. requirements-resolved.txt records the exact successful environment; no compatibility override was required."
+}

@@ -32,10 +32,30 @@ export interface RunMetrics {
   citation_recall?: number | null; groundedness?: number | null; unsupported_claim_rate?: number | null;
   embedding_latency?: number | null; reranking_latency?: number | null;
   rag_average_latency?: number | null; rag_p95_latency?: number | null;
+  external_benchmark?: ExternalBenchmarkSummary;
+}
+export interface ExternalBenchmarkSummary {
+  verdicts: { pass: number; warn: number; block: number };
+  completed_execution_count: number;
+  quality: Record<string, number | null>;
+  hallucination: {
+    grounded_case_rate: number | null; unsupported_claim_rate: number | null;
+    hallucination_case_rate: number | null;
+    factual_claim_count: number; supported_factual_claims: number;
+  };
+  privacy_isolation: {
+    leakage_cases: number; leakage_rate: number | null; memory_isolation_pass_rate: number | null;
+  };
+  performance: {
+    model_latency_ms: Record<string, number | null>;
+    total_case_latency_ms: Record<string, number | null>;
+    token_counts: Record<string, number>;
+  };
+  audit: { completed: boolean; validated_agent_failure_case_count: number; unresolved_case_count: number };
 }
 export interface Run {
   id: string; project_id: string; test_suite_id: string; agent_version_id: string; status: RunStatus;
-  verdict: Verdict; snapshot: { agent?: Record<string, unknown>; suite?: Record<string, unknown>; scenarios?: Scenario[]; rag?: RagSnapshot };
+  verdict: Verdict; snapshot: { agent?: Record<string, unknown>; suite?: Record<string, unknown>; scenarios?: Scenario[]; rag?: RagSnapshot; external_benchmark?: Record<string, unknown> };
   metrics: RunMetrics; overall_score: string | null; total_cases: number;
   completed_cases: number; passed_cases: number; failed_cases: number; started_at: string | null;
   finished_at: string | null; created_at: string;

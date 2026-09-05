@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "performance",
+  "updated_at": "2026-09-04T19:33:55.467407+00:00",
+  "selected_execution_count": 60,
+  "completed_execution_count": 60,
+  "verdicts": {
+    "pass": 46,
+    "warn": 0,
+    "block": 14
+  },
+  "quality": {
+    "eligible_case_count": 60,
+    "excluded_case_count": 0,
+    "task_success_rate": 0.8166666666666667,
+    "tool_selection_accuracy": 1.0,
+    "required_tool_recall": 1.0,
+    "unexpected_tool_rate": 0.0,
+    "forbidden_tool_rate": 0.0,
+    "tool_argument_accuracy": 0.9833333333333333,
+    "required_argument_accuracy": 1.0,
+    "fact_accuracy": 0.8205128205128205,
+    "expected_fact_accuracy": 0.8205128205128205,
+    "escalation_accuracy": null,
+    "kb_answer_accuracy": 0.6,
+    "order_status_accuracy": 0.9333333333333333,
+    "inventory_accuracy": 1.0,
+    "return_flow_accuracy": null,
+    "multi_turn_context_accuracy": null,
+    "insufficient_information_accuracy": null,
+    "completion_rate": 1.0,
+    "timeout_rate": 0.0,
+    "agent_error_rate": 0.0,
+    "tool_error_rate": 0.045454545454545456,
+    "retry_rate": 0.0,
+    "malformed_output_rate": 0.05,
+    "retrieval_failure_rate": 0.375
+  },
+  "hallucination": {
+    "factual_claim_count": 74,
+    "supported_factual_claims": 74,
+    "contradicted_claims": 0,
+    "unsupported_claims": 0,
+    "fabricated_entities_or_values": 0,
+    "hallucination_case_rate": 0.0,
+    "unsupported_claim_rate": 0.0,
+    "grounded_case_rate": 1.0,
+    "scope": "deterministically extractable business values and identifiers"
+  },
+  "privacy_isolation": {
+    "evaluated_cases": 0,
+    "leakage_cases": 0,
+    "leakage_rate": null,
+    "memory_isolation_pass_rate": null
+  },
+  "retrieval": {
+    "evaluated_cases": 18,
+    "document_id_origin": "benchmark_derived_from_exact_returned_content",
+    "recall_at_1": 0.3333333333333333,
+    "recall_at_3": 0.3333333333333333,
+    "recall_at_5": 0.3333333333333333,
+    "mrr": 0.3333333333333333,
+    "ndcg": 0.3333333333333333,
+    "citation_precision": null,
+    "citation_recall": null,
+    "citation_status": "N/A_no_structured_citations"
+  },
+  "performance": {
+    "total_case_latency_ms": {
+      "mean": 42404.05,
+      "median": 32699.0,
+      "p50": 32699.0,
+      "p90": 75115.3,
+      "p95": 93621.55,
+      "p99": 133016.2099999998,
+      "min": 17096.0,
+      "max": 172240.0
+    },
+    "model_latency_ms": {
+      "mean": 41239.45535,
+      "median": 31856.293,
+      "p50": 31856.293,
+      "p90": 74001.42670000001,
+      "p95": 92548.88605,
+      "p99": 131781.46998999978,
+      "min": 16436.02,
+      "max": 170889.761
+    },
+    "model_latency_status": "measured_from_ollama_response_metadata",
+    "queue_wait_ms": null,
+    "queue_wait_status": "N/A_not_returned_by_wait_protocol",
+    "tool_latency_ms": null,
+    "tool_latency_status": "N/A_not_exposed",
+    "retrieval_latency_ms": null,
+    "retrieval_latency_status": "N/A_not_exposed",
+    "time_to_first_token_ms": null,
+    "time_to_first_token_status": "N/A_non_streaming_wait_protocol",
+    "warmup_excluded_ms": 89168,
+    "retry_count": {
+      "total": 0,
+      "mean_per_case": 0.0
+    },
+    "tool_call_count": {
+      "total": 66,
+      "mean_per_case": 1.1
+    },
+    "token_counts": {
+      "input_tokens": 275391,
+      "output_tokens": 4185,
+      "total_tokens": 279576
+    },
+    "token_counts_status": "measured_from_model_usage_metadata"
+  },
+  "errors": {
+    "execution_errors": 0,
+    "timeouts": 0
+  },
+  "audit": {
+    "pending_non_pass_cases": 14,
+    "completed": false
+  },
+  "local_benchmark_throughput": {
+    "C1": {
+      "label": "LOCAL BENCHMARK THROUGHPUT",
+      "case_count": 20,
+      "completed_executions": 20,
+      "wall_seconds": 457.85144310002215,
+      "cases_per_minute": 2.620937463634571,
+      "success_rate": 0.8,
+      "mean_latency_ms": 22886.6,
+      "p50_latency_ms": 21030.0,
+      "p95_latency_ms": 33834.1,
+      "token_counts": {
+        "input_tokens": 91797,
+        "output_tokens": 1403,
+        "total_tokens": 93200
+      },
+      "token_counts_status": "measured_from_model_usage_metadata",
+      "timeout_rate": 0.0,
+      "error_rate": 0.0
+    },
+    "C2": {
+      "label": "LOCAL BENCHMARK THROUGHPUT",
+      "case_count": 20,
+      "completed_executions": 20,
+      "wall_seconds": 364.7537437999854,
+      "cases_per_minute": 3.2898908384008974,
+      "success_rate": 0.8,
+      "mean_latency_ms": 35546.6,
+      "p50_latency_ms": 31671.5,
+      "p95_latency_ms": 51271.950000000026,
+      "token_counts": {
+        "input_tokens": 91797,
+        "output_tokens": 1387,
+        "total_tokens": 93184
+      },
+      "token_counts_status": "measured_from_model_usage_metadata",
+      "timeout_rate": 0.0,
+      "error_rate": 0.0
+    },
+    "C4": {
+      "label": "LOCAL BENCHMARK THROUGHPUT",
+      "case_count": 20,
+      "completed_executions": 20,
+      "wall_seconds": 364.6151504999725,
+      "cases_per_minute": 3.2911413537109464,
+      "success_rate": 0.85,
+      "mean_latency_ms": 68778.95,
+      "p50_latency_ms": 59869.5,
+      "p95_latency_ms": 109083.05000000005,
+      "token_counts": {
+        "input_tokens": 91797,
+        "output_tokens": 1395,
+        "total_tokens": 93192
+      },
+      "token_counts_status": "measured_from_model_usage_metadata",
+      "timeout_rate": 0.0,
+      "error_rate": 0.0
+    }
+  }
+}
