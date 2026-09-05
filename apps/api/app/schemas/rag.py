@@ -195,8 +195,14 @@ class GoldEvidenceCreate(BaseModel):
 
     @field_validator("chunk_id")
     @classmethod
-    def at_least_one_evidence_reference(cls, value: uuid.UUID | None, info: Any) -> uuid.UUID | None:
-        if value is None and info.data.get("document_id") is None and info.data.get("document_version_id") is None:
+    def at_least_one_evidence_reference(
+        cls, value: uuid.UUID | None, info: Any
+    ) -> uuid.UUID | None:
+        if (
+            value is None
+            and info.data.get("document_id") is None
+            and info.data.get("document_version_id") is None
+        ):
             raise ValueError("At least one evidence reference is required")
         return value
 

@@ -94,7 +94,11 @@ def validate(manifest: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str,
         if not str(case.get("prompt", "")).strip():
             errors.append(prefix + "empty prompt")
         turns = case.get("turns")
-        if not isinstance(turns, list) or not turns or not all(isinstance(x, str) and x for x in turns):
+        if (
+            not isinstance(turns, list)
+            or not turns
+            or not all(isinstance(x, str) and x for x in turns)
+        ):
             errors.append(prefix + "turns must be a non-empty list of strings")
         if category == "multi_turn" and len(turns or []) < 2:
             errors.append(prefix + "multi-turn case has fewer than two turns")
@@ -104,7 +108,11 @@ def validate(manifest: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str,
         required = set(case.get("required_tools", []))
         allowed = set(case.get("allowed_tools", []))
         forbidden = set(case.get("forbidden_tools", []))
-        for label, values in (("required", required), ("allowed", allowed), ("forbidden", forbidden)):
+        for label, values in (
+            ("required", required),
+            ("allowed", allowed),
+            ("forbidden", forbidden),
+        ):
             unknown = values - known_tools
             if unknown:
                 errors.append(prefix + f"unknown {label} tools: {sorted(unknown)}")
@@ -123,21 +131,37 @@ def validate(manifest: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str,
             schema_keys = set(manifest["tools"][tool]["arguments"])
             provided = set(expectation.get("match", {}))
             if not provided <= schema_keys:
-                errors.append(prefix + f"invalid arguments for {tool}: {sorted(provided - schema_keys)}")
+                errors.append(
+                    prefix + f"invalid arguments for {tool}: {sorted(provided - schema_keys)}"
+                )
             values = expectation.get("match", {})
             order_id = values.get("order_id")
             if order_id and order_id not in valid_orders and category != "unknown":
                 errors.append(prefix + f"non-upstream order ID {order_id!r}")
             product_values = values.get("product_name")
             if product_values and category != "unknown":
-                candidates = product_values if isinstance(product_values, list) else [product_values]
-                if not any(product in str(candidate).lower() for candidate in candidates for product in valid_products):
-                    errors.append(prefix + f"product expectation lacks a valid upstream product: {candidates}")
+                candidates = (
+                    product_values if isinstance(product_values, list) else [product_values]
+                )
+                if not any(
+                    product in str(candidate).lower()
+                    for candidate in candidates
+                    for product in valid_products
+                ):
+                    errors.append(
+                        prefix + f"product expectation lacks a valid upstream product: {candidates}"
+                    )
             reason_values = values.get("reason")
             if reason_values:
                 candidates = reason_values if isinstance(reason_values, list) else [reason_values]
                 normalized = {str(item).replace(" ", "_") for item in candidates}
-                if not normalized & valid_reasons and not normalized & {"defective", "damaged", "broken", "changed_mind", "wrong_item"}:
+                if not normalized & valid_reasons and not normalized & {
+                    "defective",
+                    "damaged",
+                    "broken",
+                    "changed_mind",
+                    "wrong_item",
+                }:
                     errors.append(prefix + f"invalid return/escalation reasons: {candidates}")
 
         for expected_fact in case.get("expected_facts", []):

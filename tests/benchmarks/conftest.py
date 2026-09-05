@@ -8,10 +8,7 @@ from typing import Any
 import pytest
 
 BENCHMARK_ROOT = (
-    Path(__file__).resolve().parents[2]
-    / "benchmarks"
-    / "external"
-    / "langgraph-support-v1"
+    Path(__file__).resolve().parents[2] / "benchmarks" / "external" / "langgraph-support-v1"
 )
 sys.path.insert(0, str(BENCHMARK_ROOT))
 

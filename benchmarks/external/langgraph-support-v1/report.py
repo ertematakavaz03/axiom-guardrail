@@ -36,10 +36,17 @@ def percent(item: Any) -> str:
 
 
 def latency_row(name: str, metrics: dict[str, Any]) -> str:
-    return "| " + " | ".join(
-        [name]
-        + [value(metrics.get(key), 2) for key in ("mean", "median", "p50", "p90", "p95", "p99", "min", "max")]
-    ) + " |"
+    return (
+        "| "
+        + " | ".join(
+            [name]
+            + [
+                value(metrics.get(key), 2)
+                for key in ("mean", "median", "p50", "p90", "p95", "p99", "min", "max")
+            ]
+        )
+        + " |"
+    )
 
 
 def main() -> int:
@@ -61,16 +68,12 @@ def main() -> int:
     smoke_audit = load(args.smoke_audit)
     smoke = load(args.smoke_summary)
     primary_audit = load(args.primary_audit)
-    primary_raw_directory = Path(
-        primary_audit["input_directories_in_precedence_order"][0]
-    )
+    primary_raw_directory = Path(primary_audit["input_directories_in_precedence_order"][0])
     primary = load(args.primary_summary)
     performance = load(args.performance_summary)
     stability = load(args.stability)
     integration = load(args.integration)
-    excluded_stability_path = (
-        args.stability.parent / "excluded-infrastructure-attempts.jsonl"
-    )
+    excluded_stability_path = args.stability.parent / "excluded-infrastructure-attempts.jsonl"
     excluded_stability_attempts = (
         sum(
             bool(line.strip())
@@ -79,9 +82,7 @@ def main() -> int:
         if excluded_stability_path.exists()
         else 0
     )
-    audited_hashes = load(args.primary_audit.parent / "artifacts-sha256.json")[
-        "artifacts"
-    ]
+    audited_hashes = load(args.primary_audit.parent / "artifacts-sha256.json")["artifacts"]
 
     q = primary["quality"]
     h = primary["hallucination"]
@@ -126,22 +127,17 @@ def main() -> int:
             return resolved.relative_to(Path.cwd().resolve()).as_posix()
         except ValueError:
             return resolved.name
+
     benchmark_hashes = {
-        "benchmarks/external/langgraph-support-v1/manifest.yaml": sha256(
-            ROOT / "manifest.yaml"
-        ),
-        "benchmarks/external/langgraph-support-v1/cases.json": sha256(
-            ROOT / "cases.json"
-        ),
+        "benchmarks/external/langgraph-support-v1/manifest.yaml": sha256(ROOT / "manifest.yaml"),
+        "benchmarks/external/langgraph-support-v1/cases.json": sha256(ROOT / "cases.json"),
         **audited_hashes,
         report_path(args.performance_summary): sha256(args.performance_summary),
         report_path(args.stability): sha256(args.stability),
         report_path(args.integration): sha256(args.integration),
     }
     if excluded_stability_path.exists():
-        benchmark_hashes[report_path(excluded_stability_path)] = sha256(
-            excluded_stability_path
-        )
+        benchmark_hashes[report_path(excluded_stability_path)] = sha256(excluded_stability_path)
     integration_path = (
         f"{integration['project']['name']} → {integration['agent']['name']} → "
         f"{integration['suite']['name']} → Run {integration['run']['id']} → Case → Trace"
@@ -233,7 +229,9 @@ def main() -> int:
         "| --- | ---: |",
         *[f"| {name} | {count} |" for name, count in category_counts.items()],
         "",
-        "Difficulty: " + ", ".join(f"{name}={count}" for name, count in difficulty_counts.items()) + ".",
+        "Difficulty: "
+        + ", ".join(f"{name}={count}" for name, count in difficulty_counts.items())
+        + ".",
         "",
         "## Smoke audit",
         "",

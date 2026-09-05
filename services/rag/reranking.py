@@ -22,7 +22,10 @@ class NoopReranker:
         self, query: str, candidates: list[RetrievalHit], top_n: int
     ) -> list[RetrievalHit]:
         del query
-        return [hit.model_copy(update={"rank": index + 1}) for index, hit in enumerate(candidates[:top_n])]
+        return [
+            hit.model_copy(update={"rank": index + 1})
+            for index, hit in enumerate(candidates[:top_n])
+        ]
 
 
 class TokenOverlapReranker:
@@ -38,7 +41,9 @@ class TokenOverlapReranker:
         scored.sort(
             key=lambda hit: (hit.rerank_score or 0.0, hit.hybrid_score or 0.0), reverse=True
         )
-        return [hit.model_copy(update={"rank": index + 1}) for index, hit in enumerate(scored[:top_n])]
+        return [
+            hit.model_copy(update={"rank": index + 1}) for index, hit in enumerate(scored[:top_n])
+        ]
 
 
 def reranker_for(name: str) -> Reranker:

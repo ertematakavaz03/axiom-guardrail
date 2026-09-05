@@ -9,9 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 SECRET_PATTERNS = [
-    re.compile(
-        r"(?i)(?<!return )(authorization\s*[:=]\s*)(?:bearer\s+)?([^\s,;]+)"
-    ),
+    re.compile(r"(?i)(?<!return )(authorization\s*[:=]\s*)(?:bearer\s+)?([^\s,;]+)"),
     re.compile(r"(?i)(bearer\s+)([A-Za-z0-9._~+/=-]+)"),
     re.compile(r"(?i)((?:api[_-]?key|password|cookie|secret)\s*[:=]\s*)([^\s,;]+)"),
 ]
@@ -255,7 +253,9 @@ class LangGraphHttpAdapter:
                 status_code=exc.code,
             ) from exc
         except (urllib.error.URLError, TimeoutError) as exc:
-            raise ExternalAgentError(f"LangGraph API connection failed: {exc}", transient=True) from exc
+            raise ExternalAgentError(
+                f"LangGraph API connection failed: {exc}", transient=True
+            ) from exc
 
     def health(self) -> dict[str, Any]:
         info = self._request("GET", "/info")
@@ -403,9 +403,7 @@ class LangGraphHttpAdapter:
                     "queue_wait_status": "N/A",
                     "external_agent_latency_ms": external_latency,
                     "model_latency_ms": (
-                        round(model_duration_ns / 1_000_000, 3)
-                        if model_latency_available
-                        else None
+                        round(model_duration_ns / 1_000_000, 3) if model_latency_available else None
                     ),
                     "model_latency_status": (
                         "measured_from_ollama_response_metadata"

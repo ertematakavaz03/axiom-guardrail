@@ -127,8 +127,12 @@ class RetrievalEvaluator:
                 reason = "GOLD_EVIDENCE_NOT_RETRIEVED"
                 explanation = "Required gold evidence was not present in the top five results"
             results = [
-                _result("retrieval_recall_at_1", True, "Recall@1 measured", value=metrics.recall_at_1),
-                _result("retrieval_recall_at_3", True, "Recall@3 measured", value=metrics.recall_at_3),
+                _result(
+                    "retrieval_recall_at_1", True, "Recall@1 measured", value=metrics.recall_at_1
+                ),
+                _result(
+                    "retrieval_recall_at_3", True, "Recall@3 measured", value=metrics.recall_at_3
+                ),
                 _result(
                     "retrieval_recall_at_5",
                     reason is None,
@@ -139,8 +143,12 @@ class RetrievalEvaluator:
                     actual=[hit.model_dump() for hit in hits[:5]],
                     evidence=stale or {},
                 ),
-                _result("mrr", True, "Mean reciprocal rank contribution measured", value=metrics.mrr),
-                _result("ndcg", True, "nDCG measured when graded relevance applies", value=metrics.ndcg),
+                _result(
+                    "mrr", True, "Mean reciprocal rank contribution measured", value=metrics.mrr
+                ),
+                _result(
+                    "ndcg", True, "nDCG measured when graded relevance applies", value=metrics.ndcg
+                ),
                 _result(
                     "gold_evidence_hit_rate",
                     True,
@@ -173,9 +181,7 @@ class RetrievalEvaluator:
         return results
 
     @staticmethod
-    def _stale_hit(
-        hits: list[RetrievalHit], context: EvaluationContext
-    ) -> dict[str, Any] | None:
+    def _stale_hit(hits: list[RetrievalHit], context: EvaluationContext) -> dict[str, Any] | None:
         for gold in context.gold_evidence:
             if not gold.document_id or not gold.document_version_id:
                 continue
@@ -253,8 +259,12 @@ class CitationAndGroundednessEvaluator:
             ):
                 citation_findings[citation.citation_id] = "CITATION_OUT_OF_SCOPE"
                 continue
-            linked_claims = [claim_by_id[item] for item in citation.claim_ids if item in claim_by_id]
-            if linked_claims and all(claim_is_supported(claim.text, hit.content) for claim in linked_claims):
+            linked_claims = [
+                claim_by_id[item] for item in citation.claim_ids if item in claim_by_id
+            ]
+            if linked_claims and all(
+                claim_is_supported(claim.text, hit.content) for claim in linked_claims
+            ):
                 supportive_citations.add(citation.citation_id)
                 supported_claims.update(claim.id for claim in linked_claims)
             else:
@@ -303,8 +313,10 @@ class CitationAndGroundednessEvaluator:
         ]
         groundedness = len(supported_claims) / len(factual) if factual else None
         grounded = not missing_claims and not unsupported_claims
-        ground_reason = "UNSUPPORTED_CLAIM" if unsupported_claims else (
-            "MISSING_CITATION" if missing_claims else None
+        ground_reason = (
+            "UNSUPPORTED_CLAIM"
+            if unsupported_claims
+            else ("MISSING_CITATION" if missing_claims else None)
         )
         results.append(
             _result(

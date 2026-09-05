@@ -32,8 +32,7 @@ def analyze(records: list[dict[str, Any]], expected_repetitions: int = 3) -> dic
         case_records = sorted(grouped[case_id], key=lambda item: int(item["repeat"]))
         verdicts = [record["evaluation"]["verdict"] for record in case_records]
         tool_selections = [
-            [call["name"] for call in record["execution"]["tool_calls"]]
-            for record in case_records
+            [call["name"] for call in record["execution"]["tool_calls"]] for record in case_records
         ]
         arguments = [
             [
@@ -96,8 +95,7 @@ def analyze(records: list[dict[str, Any]], expected_repetitions: int = 3) -> dic
         return sum(bool(case[field]) for case in cases) / len(cases)
 
     all_latencies = [
-        float(record["execution"]["performance"]["total_case_latency_ms"])
-        for record in records
+        float(record["execution"]["performance"]["total_case_latency_ms"]) for record in records
     ]
     mean_latency = statistics.fmean(all_latencies)
     return {

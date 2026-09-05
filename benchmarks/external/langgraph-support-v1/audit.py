@@ -198,9 +198,7 @@ def main() -> int:
         "schema_version": 1,
         "benchmark_id": manifest["benchmark_id"],
         "audited_at": audited_at,
-        "input_directories_in_precedence_order": [
-            repository_path(path) for path in args.input
-        ],
+        "input_directories_in_precedence_order": [repository_path(path) for path in args.input],
         "case_count": len(audit_entries),
         "classification_taxonomy": sorted(CLASSIFICATIONS),
         "case_classification_counts": dict(sorted(case_classification_counts.items())),
@@ -233,17 +231,14 @@ def main() -> int:
             ),
             "unavailable_metrics_remain_na": True,
             "infrastructure_stable": all(
-                not records[entry["case_id"]]["execution"].get("errors")
-                for entry in audit_entries
+                not records[entry["case_id"]]["execution"].get("errors") for entry in audit_entries
             ),
             "remaining_non_pass_is_defensible_agent_behavior": all(
                 entry["audit_classification"] in {"not_required", "REAL_AGENT_FAILURE"}
                 for entry in audit_entries
             ),
         }
-        audit["smoke_acceptance"]["accepted"] = all(
-            audit["smoke_acceptance"].values()
-        )
+        audit["smoke_acceptance"]["accepted"] = all(audit["smoke_acceptance"].values())
     output_name = "smoke-audit.json" if base_metadata["mode"] == "smoke" else "audit.json"
     audit_path = output / output_name
     summary_path = output / "summary-audited.json"
@@ -256,8 +251,7 @@ def main() -> int:
             "schema_version": 1,
             "created_at": audited_at,
             "artifacts": {
-                repository_path(path): sha256(path)
-                for path in [*input_artifacts, *artifacts]
+                repository_path(path): sha256(path) for path in [*input_artifacts, *artifacts]
             },
         },
     )

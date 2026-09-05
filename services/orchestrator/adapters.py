@@ -216,11 +216,7 @@ class DemoRagAgentAdapter:
                     if item.get("chunk_id")
                 }
                 selected = next(
-                    (
-                        item
-                        for item in evidence
-                        if str(item.get("chunk_id")) not in gold_chunk_ids
-                    ),
+                    (item for item in evidence if str(item.get("chunk_id")) not in gold_chunk_ids),
                     evidence[0],
                 )
             if behavior in {"unsupported_claim", "hallucinated_value"}:

@@ -184,8 +184,7 @@ def test_unsupported_clock_time_is_auditable(
     finding = next(
         item
         for item in result["findings"]
-        if item["reason_code"] == "UNSUPPORTED_FACTUAL_CLAIM"
-        and item["actual_claim"] == "2 PM"
+        if item["reason_code"] == "UNSUPPORTED_FACTUAL_CLAIM" and item["actual_claim"] == "2 PM"
     )
     assert finding["severity"] == "warn"
 

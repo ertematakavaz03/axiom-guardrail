@@ -38,9 +38,7 @@ class AuthService:
         )
         await self.session.commit()
         registered_user = await self.session.scalar(
-            select(User)
-            .options(selectinload(User.memberships))
-            .where(User.id == user.id)
+            select(User).options(selectinload(User.memberships)).where(User.id == user.id)
         )
         if registered_user is None:  # pragma: no cover - guarded by the committed insert
             raise RuntimeError("Registered user could not be reloaded")

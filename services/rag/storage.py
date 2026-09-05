@@ -232,9 +232,7 @@ class QdrantVectorStore:
             conditions.append(
                 models.FieldCondition(
                     key=ALLOWED_FILTER_FIELDS[requested],
-                    match=models.MatchValue(
-                        value=str(value) if requested == "version" else value
-                    ),
+                    match=models.MatchValue(value=str(value) if requested == "version" else value),
                 )
             )
         return models.Filter(must=conditions)

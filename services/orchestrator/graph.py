@@ -193,7 +193,11 @@ class CaseOrchestrator:
             traces,
             "retrieval_query",
             "hybrid",
-            {"query": query, "filters": metadata.get("retrieval_filters", {}), "scope": scope.model_dump()},
+            {
+                "query": query,
+                "filters": metadata.get("retrieval_filters", {}),
+                "scope": scope.model_dump(),
+            },
         )
         self._trace(traces, "reranking_started", str(config.get("reranker_type")), {})
         parameters = config.get("retrieval_parameters", {})
@@ -216,7 +220,9 @@ class CaseOrchestrator:
                 self.settings.rag_retrieval_timeout_seconds,
             )
             if metadata.get("demo_behavior") == "retrieval_timeout":
-                raise QdrantTimeoutError("Deterministic retrieval timeout", details={"transient": True})
+                raise QdrantTimeoutError(
+                    "Deterministic retrieval timeout", details={"transient": True}
+                )
             retrieval = await service.retrieve(
                 query=query,
                 scope=scope,
@@ -258,7 +264,10 @@ class CaseOrchestrator:
             traces,
             "hybrid_retrieval_results",
             "rrf",
-            {"candidate_count": retrieval.candidate_count, "hits": [hit.model_dump() for hit in retrieval.hits]},
+            {
+                "candidate_count": retrieval.candidate_count,
+                "hits": [hit.model_dump() for hit in retrieval.hits],
+            },
             retrieval.timings.fusion_ms,
         )
         self._trace(
@@ -292,7 +301,10 @@ class CaseOrchestrator:
             traces,
             "agent_context_created",
             "retrieved_evidence",
-            {"evidence_count": len(evidence_context), "chunk_ids": [hit.chunk_id for hit in retrieval.hits]},
+            {
+                "evidence_count": len(evidence_context),
+                "chunk_ids": [hit.chunk_id for hit in retrieval.hits],
+            },
         )
         return {
             "retrieval": retrieval,

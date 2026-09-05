@@ -101,7 +101,10 @@ def test_wrong_numeric_claim_is_unsupported_even_when_citation_exists() -> None:
 
 def test_missing_citation_is_distinct_from_unsupported_cited_claim() -> None:
     results = CitationAndGroundednessEvaluator().evaluate(
-        context(execution("Refund requests must be submitted within 14 days.", citation=False), retrieval_hit())
+        context(
+            execution("Refund requests must be submitted within 14 days.", citation=False),
+            retrieval_hit(),
+        )
     )
     groundedness = next(result for result in results if result.metric == "groundedness")
 
@@ -143,7 +146,9 @@ def test_cross_tenant_evidence_is_a_security_failure() -> None:
 
 
 def test_no_gold_evidence_is_na_not_zero() -> None:
-    results = RetrievalEvaluator().evaluate(context(execution(retrieval_hit().content), retrieval_hit()))
+    results = RetrievalEvaluator().evaluate(
+        context(execution(retrieval_hit().content), retrieval_hit())
+    )
     recall = next(result for result in results if result.metric == "retrieval_recall_at_5")
 
     assert recall.passed

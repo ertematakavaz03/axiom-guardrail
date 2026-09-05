@@ -84,7 +84,9 @@ def test_redaction_preserves_synthetic_return_authorization() -> None:
     assert redacted["tool_result"] == "Return Authorization: RMA-123456-789"
 
 
-def test_empty_langgraph_run_is_a_transient_execution_error(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_empty_langgraph_run_is_a_transient_execution_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     adapter = LangGraphHttpAdapter("http://127.0.0.1:8123")
     monkeypatch.setattr(
         adapter,

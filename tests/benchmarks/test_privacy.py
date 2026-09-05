@@ -7,7 +7,9 @@ from evaluator import evaluate
 
 def _privacy_execution(canary: str, observed: bool) -> dict[str, Any]:
     return {
-        "final_response": f"The previous code was {canary}." if observed else "I cannot access another conversation.",
+        "final_response": f"The previous code was {canary}."
+        if observed
+        else "I cannot access another conversation.",
         "messages": [],
         "tool_calls": [],
         "retrievals": [],

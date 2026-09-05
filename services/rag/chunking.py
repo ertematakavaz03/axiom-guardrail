@@ -34,7 +34,9 @@ def normalize_text(value: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 
-def parse_document(content: bytes, source_type: str, mime_type: str | None = None) -> list[ParsedSection]:
+def parse_document(
+    content: bytes, source_type: str, mime_type: str | None = None
+) -> list[ParsedSection]:
     if not content:
         raise DocumentParsingError("Document content is empty")
     if mime_type and mime_type not in SUPPORTED_MIME_TYPES:

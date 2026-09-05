@@ -9,11 +9,28 @@ VALUE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("generated_id", re.compile(r"\b(?:RMA-\d{6}-\d{3}|TICKET-\d+)\b", re.IGNORECASE)),
     ("money", re.compile(r"\$\d+(?:\.\d{2})?")),
     ("clock_time", re.compile(r"\b(?:1[0-2]|0?[1-9])\s*(?:a\.?m\.?|p\.?m\.?)\b", re.IGNORECASE)),
-    ("duration", re.compile(r"\b(?:\d+(?:-\d+)?|next)\s+(?:business\s+)?(?:days?|hours?|minutes?)\b", re.IGNORECASE)),
+    (
+        "duration",
+        re.compile(
+            r"\b(?:\d+(?:-\d+)?|next)\s+(?:business\s+)?(?:days?|hours?|minutes?)\b", re.IGNORECASE
+        ),
+    ),
     ("stock_count", re.compile(r"\b\d+\s+units?\b", re.IGNORECASE)),
     ("order_id", re.compile(r"(?<![A-Z0-9])#?\d{6}(?![A-Z0-9])", re.IGNORECASE)),
-    ("status", re.compile(r"\b(?:in[_ ]transit|processing|delivered|in[_ ]stock|low[_ ]stock|out[_ ]of[_ ]stock)\b", re.IGNORECASE)),
-    ("policy", re.compile(r"\b(?:original packaging|manufacturing defects|industry-standard encryption|price matching)\b", re.IGNORECASE)),
+    (
+        "status",
+        re.compile(
+            r"\b(?:in[_ ]transit|processing|delivered|in[_ ]stock|low[_ ]stock|out[_ ]of[_ ]stock)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "policy",
+        re.compile(
+            r"\b(?:original packaging|manufacturing defects|industry-standard encryption|price matching)\b",
+            re.IGNORECASE,
+        ),
+    ),
     ("contact", re.compile(r"support@store\.com|1-800-SUPPORT", re.IGNORECASE)),
 ]
 
@@ -45,9 +62,7 @@ MALFORMED_OUTPUT_PATTERNS = (
 def normalize(value: Any) -> str:
     rendered = str(value).lower().replace("_", " ")
     normalized = " ".join(re.sub(r"[^a-z0-9$@.\- ]+", " ", rendered).split())
-    normalized = normalized.replace(
-        "defects in materials and workmanship", "manufacturing defects"
-    )
+    normalized = normalized.replace("defects in materials and workmanship", "manufacturing defects")
     return normalized.replace("next hour", "1 hour")
 
 
@@ -216,7 +231,9 @@ def _tool_metrics(
             actual_args = {}
         unknown_keys = set(actual_args) - set(schema)
         missing_required = {
-            key for key, type_spec in schema.items() if "=" not in type_spec and key not in actual_args
+            key
+            for key, type_spec in schema.items()
+            if "=" not in type_spec and key not in actual_args
         }
         type_errors = {
             key: {"actual": actual_args[key], "expected": schema[key]}
@@ -237,7 +254,9 @@ def _tool_metrics(
                     },
                     source_reference=f"manifest.yaml#tools.{name}.arguments",
                     reason="Observed arguments did not exactly match the source-derived schema.",
-                    severity="warn" if type_errors and not unknown_keys and not missing_required else "block",
+                    severity="warn"
+                    if type_errors and not unknown_keys and not missing_required
+                    else "block",
                 )
             )
 
@@ -266,11 +285,15 @@ def _tool_metrics(
                     reason="No observed call matched the source-backed expected argument values.",
                 )
             )
-    selection_denominator = max(1, len(required) + len([n for n in observed_names if n not in allowed]))
+    selection_denominator = max(
+        1, len(required) + len([n for n in observed_names if n not in allowed])
+    )
     selection_numerator = sum(tool in observed_names for tool in required)
     unexpected_count = sum(name not in allowed for name in observed_names)
     argument_accuracy = expectation_passes / len(expectations) if expectations else 1.0
-    schema_findings = [item for item in findings if item["reason_code"] == "TOOL_ARGUMENT_SCHEMA_MISMATCH"]
+    schema_findings = [
+        item for item in findings if item["reason_code"] == "TOOL_ARGUMENT_SCHEMA_MISMATCH"
+    ]
     if schema_findings:
         argument_accuracy *= max(0.0, 1.0 - len(schema_findings) / max(1, len(calls)))
     return {
@@ -349,9 +372,7 @@ def _fact_and_hallucination_metrics(
         )
 
     evidence_parts = [case.get("prompt", "")]
-    evidence_parts.extend(
-        str(call.get("result") or "") for call in execution.get("tool_calls", [])
-    )
+    evidence_parts.extend(str(call.get("result") or "") for call in execution.get("tool_calls", []))
     for expected in expected_facts:
         evidence_parts.extend(str(alias) for alias in expected["aliases"])
     evidence_text = normalize("\n".join(evidence_parts))
@@ -409,7 +430,9 @@ def _fact_and_hallucination_metrics(
         "contradicted_claims": contradicted,
         "unsupported_claims": unsupported,
         "fabricated_entities_or_values": fabricated,
-        "unsupported_claim_rate": (unsupported + fabricated) / total_claims if total_claims else 0.0,
+        "unsupported_claim_rate": (unsupported + fabricated) / total_claims
+        if total_claims
+        else 0.0,
         "grounded_case": total_claims == 0 or (contradicted + unsupported + fabricated) == 0,
         "hallucination_case": (contradicted + unsupported + fabricated) > 0,
         "claims": claim_evidence,
@@ -437,9 +460,17 @@ def _retrieval_metrics(case: dict[str, Any], execution: dict[str, Any]) -> dict[
     def recall(k: int) -> float:
         return len(gold_set & set(ranked[:k])) / len(gold_set)
 
-    first_rank = next((index for index, document_id in enumerate(ranked, 1) if document_id in gold_set), None)
-    dcg = sum((1.0 / math.log2(index + 1)) for index, document_id in enumerate(ranked, 1) if document_id in gold_set)
-    ideal = sum(1.0 / math.log2(index + 1) for index in range(1, min(len(gold_set), len(ranked)) + 1))
+    first_rank = next(
+        (index for index, document_id in enumerate(ranked, 1) if document_id in gold_set), None
+    )
+    dcg = sum(
+        (1.0 / math.log2(index + 1))
+        for index, document_id in enumerate(ranked, 1)
+        if document_id in gold_set
+    )
+    ideal = sum(
+        1.0 / math.log2(index + 1) for index in range(1, min(len(gold_set), len(ranked)) + 1)
+    )
     return {
         "status": "measured_with_benchmark_derived_document_ids",
         "recall_at_1": recall(1),

@@ -46,8 +46,7 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
 def numeric_usage(execution: dict[str, Any]) -> dict[str, int | None]:
     usage = execution.get("usage")
     if isinstance(usage, dict) and all(
-        isinstance(usage.get(key), int)
-        for key in ("input_tokens", "output_tokens", "total_tokens")
+        isinstance(usage.get(key), int) for key in ("input_tokens", "output_tokens", "total_tokens")
     ):
         return {key: int(usage[key]) for key in usage}
     input_tokens = 0
@@ -236,9 +235,7 @@ def evaluation_projection(record: dict[str, Any]) -> list[dict[str, Any]]:
             "metric": "groundedness",
             "value": float(metrics["grounded_case"]),
             "passed": bool(metrics["grounded_case"]),
-            "reason_code": "UNGROUNDED_CLAIM"
-            if not metrics["grounded_case"]
-            else None,
+            "reason_code": "UNGROUNDED_CLAIM" if not metrics["grounded_case"] else None,
             "explanation": "Deterministically extractable claims checked against same-case evidence.",
             "expected": True,
             "actual": bool(metrics["grounded_case"]),
@@ -375,9 +372,7 @@ async def integrate(args: argparse.Namespace) -> dict[str, Any]:
         existing_scenarios = {
             scenario.name: scenario
             for scenario in (
-                await session.scalars(
-                    select(Scenario).where(Scenario.test_suite_id == suite.id)
-                )
+                await session.scalars(select(Scenario).where(Scenario.test_suite_id == suite.id))
             ).all()
         }
         scenarios: dict[str, Scenario] = {}
@@ -428,8 +423,7 @@ async def integrate(args: argparse.Namespace) -> dict[str, Any]:
             (
                 item
                 for item in existing_runs
-                if item.snapshot.get("external_benchmark", {}).get("source_run_id")
-                == source_run_id
+                if item.snapshot.get("external_benchmark", {}).get("source_run_id") == source_run_id
             ),
             None,
         )
@@ -451,7 +445,9 @@ async def integrate(args: argparse.Namespace) -> dict[str, Any]:
                 "model_name": manifest["model"]["name"],
             },
             "suite": {"id": str(suite.id), "version": "v1"},
-            "scenario_ids": [str(scenarios[case_id].id) for case_id in source_run["selected_case_ids"]],
+            "scenario_ids": [
+                str(scenarios[case_id].id) for case_id in source_run["selected_case_ids"]
+            ],
             "scenarios": [
                 {"id": str(scenarios[case_id].id), "name": case_id}
                 for case_id in source_run["selected_case_ids"]
@@ -572,15 +568,12 @@ async def integrate(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "scenarios": int(
                 await session.scalar(
-                    select(func.count(Scenario.id)).where(
-                        Scenario.test_suite_id == suite.id
-                    )
+                    select(func.count(Scenario.id)).where(Scenario.test_suite_id == suite.id)
                 )
                 or 0
             ),
             "matching_runs": sum(
-                item.snapshot.get("external_benchmark", {}).get("source_run_id")
-                == source_run_id
+                item.snapshot.get("external_benchmark", {}).get("source_run_id") == source_run_id
                 for item in existing_runs
             )
             + (1 if run not in existing_runs else 0),
@@ -616,8 +609,7 @@ async def integrate(args: argparse.Namespace) -> dict[str, Any]:
             "matching_runs": 1,
             "case_results": len(records),
             "traces": sum(
-                len(trace_projection(record, cases[record["case"]["id"]]))
-                for record in records
+                len(trace_projection(record, cases[record["case"]["id"]])) for record in records
             ),
             "evaluations": sum(len(evaluation_projection(record)) for record in records),
         }
@@ -655,8 +647,7 @@ def main() -> int:
         attempts = [*prior_attempts, result]
         stable_keys = ("project", "agent", "agent_version", "suite", "run")
         same_ids = len(attempts) >= 2 and all(
-            attempts[-2][key]["id"] == attempts[-1][key]["id"]
-            for key in stable_keys
+            attempts[-2][key]["id"] == attempts[-1][key]["id"] for key in stable_keys
         )
         evidence = {
             **result,
@@ -670,9 +661,7 @@ def main() -> int:
             ),
         }
         args.evidence_output.parent.mkdir(parents=True, exist_ok=True)
-        args.evidence_output.write_text(
-            json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
-        )
+        args.evidence_output.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
         result = evidence
     print(json.dumps(result, indent=2))
     return 0

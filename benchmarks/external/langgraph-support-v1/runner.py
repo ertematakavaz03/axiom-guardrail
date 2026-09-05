@@ -82,10 +82,7 @@ def percentile(values: list[float], percent: float) -> float | None:
 
 def latency_summary(values: list[float]) -> dict[str, float | None]:
     if not values:
-        return {
-            key: None
-            for key in ("mean", "median", "p50", "p90", "p95", "p99", "min", "max")
-        }
+        return {key: None for key in ("mean", "median", "p50", "p90", "p95", "p99", "min", "max")}
     return {
         "mean": statistics.fmean(values),
         "median": statistics.median(values),
@@ -126,8 +123,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
     ]
     claims = sum(item["metrics"]["factual_claim_count"] for item in quality_evaluations)
     unsupported = sum(
-        item["metrics"]["unsupported_claims"]
-        + item["metrics"]["fabricated_entities_or_values"]
+        item["metrics"]["unsupported_claims"] + item["metrics"]["fabricated_entities_or_values"]
         for item in quality_evaluations
     )
     measured_retrieval = [
@@ -176,12 +172,8 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
         candidates: list[dict[str, Any]] | None = None,
     ) -> float | None:
         selected = candidates if candidates is not None else evaluations
-        numerator_total = sum(
-            int(item["metrics"].get(numerator, 0)) for item in selected
-        )
-        denominator_total = sum(
-            int(item["metrics"].get(denominator, 0)) for item in selected
-        )
+        numerator_total = sum(int(item["metrics"].get(numerator, 0)) for item in selected)
+        denominator_total = sum(int(item["metrics"].get(denominator, 0)) for item in selected)
         return numerator_total / denominator_total if denominator_total else empty
 
     def category_success(category: str) -> float | None:
@@ -201,9 +193,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
         return statistics.fmean(values) if values else None
 
     def retrieval_average(name: str) -> float | None:
-        values = [
-            float(item[name]) for item in measured_retrieval if item.get(name) is not None
-        ]
+        values = [float(item[name]) for item in measured_retrieval if item.get(name) is not None]
         return statistics.fmean(values) if values else None
 
     summary: dict[str, Any] = {
@@ -257,8 +247,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
             "multi_turn_context_accuracy": category_success("multi_turn"),
             "insufficient_information_accuracy": category_success("unknown"),
             "completion_rate": (
-                sum(bool(item["metrics"]["completion_success"]) for item in evaluations)
-                / completed
+                sum(bool(item["metrics"]["completion_success"]) for item in evaluations) / completed
                 if completed
                 else None
             ),
@@ -275,14 +264,11 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                 else None
             ),
             "agent_error_rate": (
-                sum(bool(item["metrics"]["agent_error_case"]) for item in evaluations)
-                / completed
+                sum(bool(item["metrics"]["agent_error_case"]) for item in evaluations) / completed
                 if completed
                 else None
             ),
-            "tool_error_rate": weighted_ratio(
-                "tool_error_count", "observed_tool_count", empty=0.0
-            ),
+            "tool_error_rate": weighted_ratio("tool_error_count", "observed_tool_count", empty=0.0),
             "retry_rate": (
                 sum(
                     int(record["execution"]["performance"].get("retry_count", 0)) > 0
@@ -314,8 +300,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                 item["metrics"]["unsupported_claims"] for item in quality_evaluations
             ),
             "fabricated_entities_or_values": sum(
-                item["metrics"]["fabricated_entities_or_values"]
-                for item in quality_evaluations
+                item["metrics"]["fabricated_entities_or_values"] for item in quality_evaluations
             ),
             "hallucination_case_rate": (
                 sum(bool(item["metrics"]["hallucination_case"]) for item in quality_evaluations)
@@ -334,9 +319,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
         },
         "privacy_isolation": {
             "evaluated_cases": sum("isolation" in record["execution"] for record in records),
-            "leakage_cases": sum(
-                bool(item["metrics"]["leakage_observed"]) for item in evaluations
-            ),
+            "leakage_cases": sum(bool(item["metrics"]["leakage_observed"]) for item in evaluations),
             "leakage_rate": (
                 sum(bool(item["metrics"]["leakage_observed"]) for item in evaluations)
                 / max(
@@ -416,15 +399,11 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                 for key in ("input_tokens", "output_tokens", "total_tokens")
             },
             "token_counts_status": (
-                "measured_from_model_usage_metadata"
-                if measured_usages
-                else "N/A_not_exposed"
+                "measured_from_model_usage_metadata" if measured_usages else "N/A_not_exposed"
             ),
         },
         "errors": {
-            "execution_errors": sum(
-                bool(record["execution"].get("errors")) for record in records
-            ),
+            "execution_errors": sum(bool(record["execution"].get("errors")) for record in records),
             "timeouts": sum(
                 any(
                     error.get("type") == "timeout"
@@ -452,24 +431,18 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
         throughput: dict[str, Any] = {}
         for batch in metadata.get("performance_batches", []):
             level_records = [
-                record
-                for record in records
-                if record.get("concurrency") == batch["concurrency"]
+                record for record in records if record.get("concurrency") == batch["concurrency"]
             ]
             wall_seconds = batch.get("wall_seconds")
             level_latencies = [
                 float(record["execution"]["performance"]["total_case_latency_ms"])
                 for record in level_records
                 if isinstance(
-                    record.get("execution", {})
-                    .get("performance", {})
-                    .get("total_case_latency_ms"),
+                    record.get("execution", {}).get("performance", {}).get("total_case_latency_ms"),
                     (int, float),
                 )
             ]
-            level_usages = [
-                usage for record in level_records if (usage := measured_usage(record))
-            ]
+            level_usages = [usage for record in level_records if (usage := measured_usage(record))]
             throughput[f"C{batch['concurrency']}"] = {
                 "label": "LOCAL BENCHMARK THROUGHPUT",
                 "case_count": len(level_records),
@@ -479,17 +452,12 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                     len(level_records) * 60 / wall_seconds if wall_seconds else None
                 ),
                 "success_rate": (
-                    sum(
-                        record["evaluation"]["metrics"]["task_success"]
-                        for record in level_records
-                    )
+                    sum(record["evaluation"]["metrics"]["task_success"] for record in level_records)
                     / len(level_records)
                     if level_records
                     else None
                 ),
-                "mean_latency_ms": (
-                    statistics.fmean(level_latencies) if level_latencies else None
-                ),
+                "mean_latency_ms": (statistics.fmean(level_latencies) if level_latencies else None),
                 "p50_latency_ms": percentile(level_latencies, 0.50),
                 "p95_latency_ms": percentile(level_latencies, 0.95),
                 "token_counts": {
@@ -497,9 +465,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                     for key in ("input_tokens", "output_tokens", "total_tokens")
                 },
                 "token_counts_status": (
-                    "measured_from_model_usage_metadata"
-                    if level_usages
-                    else "N/A_not_exposed"
+                    "measured_from_model_usage_metadata" if level_usages else "N/A_not_exposed"
                 ),
                 "timeout_rate": (
                     sum(
@@ -514,10 +480,7 @@ def build_summary(records: list[dict[str, Any]], metadata: dict[str, Any]) -> di
                     else None
                 ),
                 "error_rate": (
-                    sum(
-                        bool(record["execution"].get("errors"))
-                        for record in level_records
-                    )
+                    sum(bool(record["execution"].get("errors")) for record in level_records)
                     / len(level_records)
                     if level_records
                     else None
@@ -585,9 +548,7 @@ def run_one(
             execution = adapter.execute(case["id"], case["turns"])
         evaluation = evaluate(case, execution, manifest)
     except Exception as exc:  # Persist infrastructure evidence instead of aborting the run.
-        execution = execution_error(
-            case, exc, round((time.perf_counter() - started) * 1000)
-        )
+        execution = execution_error(case, exc, round((time.perf_counter() - started) * 1000))
         evaluation = evaluate(case, execution, manifest)
         evaluation["verdict"] = "block"
         evaluation["score"] = 0.0
@@ -646,30 +607,22 @@ def select_cases(
         if missing:
             raise ValueError(f"Unknown or mode-ineligible case IDs: {sorted(missing)}")
     if args.category:
-        selected = [
-            case for case in selected if case["category"] in set(args.category)
-        ]
+        selected = [case for case in selected if case["category"] in set(args.category)]
     if args.difficulty:
-        selected = [
-            case for case in selected if case["difficulty"] in set(args.difficulty)
-        ]
+        selected = [case for case in selected if case["difficulty"] in set(args.difficulty)]
     if args.limit is not None:
         selected = selected[: args.limit]
     return selected
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run the real external LangGraph benchmark"
-    )
+    parser = argparse.ArgumentParser(description="Run the real external LangGraph benchmark")
     parser.add_argument("--base-url", default="http://127.0.0.1:8123")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--case", action="append")
     parser.add_argument("--category", action="append")
-    parser.add_argument(
-        "--difficulty", action="append", choices=["easy", "medium", "hard"]
-    )
+    parser.add_argument("--difficulty", action="append", choices=["easy", "medium", "hard"])
     parser.add_argument("--limit", type=int)
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--stability", action="store_true")
@@ -691,9 +644,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if sum(bool(item) for item in (args.smoke, args.stability, args.performance)) > 1:
-        raise SystemExit(
-            "Choose at most one of --smoke, --stability, or --performance"
-        )
+        raise SystemExit("Choose at most one of --smoke, --stability, or --performance")
     mode = (
         "smoke"
         if args.smoke
@@ -707,9 +658,7 @@ def main() -> int:
     cases = load_json(ROOT / "cases.json")
     validation = validate(manifest, cases)
     if not validation["valid"]:
-        raise SystemExit(
-            "Manifest validation failed: " + "; ".join(validation["errors"])
-        )
+        raise SystemExit("Manifest validation failed: " + "; ".join(validation["errors"]))
     selected = select_cases(cases, args, mode)
     if not selected:
         raise SystemExit("No cases selected")
@@ -718,17 +667,13 @@ def main() -> int:
     output = (args.output or RESULTS_ROOT / f"{suffix}-{mode}").resolve()
     records_path = output / "cases.jsonl"
     if output.exists() and not args.resume and records_path.exists():
-        raise SystemExit(
-            f"Output already has results; use --resume or a new --output: {output}"
-        )
+        raise SystemExit(f"Output already has results; use --resume or a new --output: {output}")
     output.mkdir(parents=True, exist_ok=True)
     existing = read_jsonl(records_path) if args.resume else []
     retry_ids = set(args.retry_incomplete_execution_id or [])
     if retry_ids:
         if mode != "stability" or not args.resume:
-            raise SystemExit(
-                "--retry-incomplete-execution-id requires --stability and --resume"
-            )
+            raise SystemExit("--retry-incomplete-execution-id requires --stability and --resume")
         indexed = {record["execution_id"]: record for record in existing}
         missing_retry_ids = retry_ids - set(indexed)
         if missing_retry_ids:
@@ -738,14 +683,11 @@ def main() -> int:
         completed_retry_ids = {
             execution_id
             for execution_id in retry_ids
-            if indexed[execution_id]["evaluation"]["metrics"].get(
-                "completion_success", False
-            )
+            if indexed[execution_id]["evaluation"]["metrics"].get("completion_success", False)
         }
         if completed_retry_ids:
             raise SystemExit(
-                "Refusing to retry completed executions: "
-                f"{sorted(completed_retry_ids)}"
+                f"Refusing to retry completed executions: {sorted(completed_retry_ids)}"
             )
         quarantine_path = output / "excluded-infrastructure-attempts.jsonl"
         for execution_id in sorted(retry_ids):
@@ -758,9 +700,7 @@ def main() -> int:
                     "record": indexed[execution_id],
                 },
             )
-        existing = [
-            record for record in existing if record["execution_id"] not in retry_ids
-        ]
+        existing = [record for record in existing if record["execution_id"] not in retry_ids]
         atomic_jsonl(records_path, existing)
     completed_ids = {record["execution_id"] for record in existing}
 
@@ -772,9 +712,7 @@ def main() -> int:
     )
     health = adapter.health()
     repetitions = (
-        range(1, manifest["stability"]["repetitions"] + 1)
-        if mode == "stability"
-        else [None]
+        range(1, manifest["stability"]["repetitions"] + 1) if mode == "stability" else [None]
     )
     concurrency_levels = (
         [int(args.performance[1:])]
@@ -826,8 +764,7 @@ def main() -> int:
             work = [
                 (case, f"{case['id']}::performance::C{concurrency}")
                 for case in selected
-                if f"{case['id']}::performance::C{concurrency}"
-                not in completed_ids
+                if f"{case['id']}::performance::C{concurrency}" not in completed_ids
             ]
             batch_started = time.perf_counter()
             with ThreadPoolExecutor(max_workers=concurrency) as executor:
@@ -861,9 +798,7 @@ def main() -> int:
         for repeat in repetitions:
             for case in selected:
                 execution_id = (
-                    f"{case['id']}::stability::{repeat}"
-                    if repeat is not None
-                    else case["id"]
+                    f"{case['id']}::stability::{repeat}" if repeat is not None else case["id"]
                 )
                 if execution_id in completed_ids:
                     print(f"{execution_id}: SKIP (already complete)", flush=True)
