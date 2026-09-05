@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "run_id": "1c9b49fe-76c9-406c-ae6d-aa44f73defc8",
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "smoke",
+  "started_at": "2026-09-03T19:15:58.294661+00:00",
+  "finished_at": "2026-09-03T19:21:26.043551+00:00",
+  "status": "completed",
+  "base_url": "http://127.0.0.1:8123",
+  "timeout_seconds": 180.0,
+  "selected_case_ids": [
+    "control-return-policy",
+    "control-order-123456",
+    "control-return-defective-123456",
+    "control-frustrated-escalation",
+    "kb-express-cost",
+    "order-456789",
+    "return-890123-changed_mind",
+    "inventory-webcam",
+    "escalation-complex",
+    "multi-order-345678",
+    "unknown-order",
+    "privacy-isolation-01"
+  ],
+  "selected_execution_count": 12,
+  "upstream": {
+    "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "graph_id": "agent"
+  },
+  "model": {
+    "name": "llama3.1:latest",
+    "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e"
+  },
+  "health": {
+    "info": {
+      "version": "0.13.3",
+      "langgraph_py_version": "1.2.11",
+      "flags": {
+        "assistants": true,
+        "crons": true,
+        "langsmith": false,
+        "langsmith_tracing_replicas": true,
+        "langsmith_tracing_session_on_runs": true
+      },
+      "host": {
+        "kind": "self-hosted",
+        "project_id": null,
+        "host_revision_id": null,
+        "revision_id": null,
+        "tenant_id": null
+      }
+    },
+    "ok": {
+      "ok": true
+    }
+  },
+  "warmup_excluded_ms": 89168,
+  "performance_batches": [],
+  "resume_supported": true
+}

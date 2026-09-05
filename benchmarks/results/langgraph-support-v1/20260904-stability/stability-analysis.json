@@ -1,0 +1,2103 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "analyzed_at": "2026-09-05T00:24:22.801679+00:00",
+  "case_count": 20,
+  "repetitions_per_case": 3,
+  "execution_count": 60,
+  "separate_from_primary_score": true,
+  "consistency": {
+    "verdict_consistency": 0.95,
+    "tool_selection_consistency": 1.0,
+    "argument_consistency": 1.0,
+    "fact_consistency": 0.95,
+    "hallucination_consistency": 0.9
+  },
+  "latency_variability": {
+    "latency_ms": {
+      "mean": 30852.183333333334,
+      "median": 23781.5,
+      "p50": 23781.5,
+      "p90": 44492.200000000004,
+      "p95": 47343.4,
+      "p99": 146971.11999999988,
+      "min": 19470.0,
+      "max": 168938.0
+    },
+    "standard_deviation_ms": 23877.91228239645,
+    "coefficient_of_variation": 0.7739456240232523
+  },
+  "verdict_counts": {
+    "block": 29,
+    "pass": 31
+  },
+  "cases": [
+    {
+      "case_id": "control-frustrated-escalation",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "explicit_request",
+              "customer_message": "This is ridiculous. I want a human now."
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "explicit_request",
+              "customer_message": "This is ridiculous. I want a human now."
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "explicit_request",
+              "customer_message": "This is ridiculous. I want a human now."
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 25294.0,
+        "median": 26317.0,
+        "p50": 26317.0,
+        "p90": 26385.8,
+        "p95": 26394.4,
+        "p99": 26401.28,
+        "min": 23162.0,
+        "max": 26403.0
+      },
+      "latency_standard_deviation_ms": 1846.8668062423992,
+      "latency_coefficient_of_variation": 0.07301600404216016
+    },
+    {
+      "case_id": "control-international-shipping",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "shipping",
+              "query": "shipping internationally"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "categories": "shipping",
+              "query": "shipping internationally",
+              "max_results": "5",
+              "min_similarity_score": "0.5"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "categories": "shipping",
+              "query": "shipping internationally",
+              "max_results": "5",
+              "min_similarity_score": "0.5"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 0
+        },
+        {
+          "passes": 0,
+          "count": 0
+        },
+        {
+          "passes": 0,
+          "count": 0
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 4,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 4,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 4,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 24660.333333333332,
+        "median": 22149.0,
+        "p50": 22149.0,
+        "p90": 29125.8,
+        "p95": 29997.9,
+        "p99": 30695.58,
+        "min": 20962.0,
+        "max": 30870.0
+      },
+      "latency_standard_deviation_ms": 5410.380054426245,
+      "latency_coefficient_of_variation": 0.2193960633578721
+    },
+    {
+      "case_id": "control-inventory-laptop",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "laptops"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "laptops"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "laptops"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 21707.0,
+        "median": 22750.0,
+        "p50": 22750.0,
+        "p90": 22870.8,
+        "p95": 22885.9,
+        "p99": 22897.98,
+        "min": 19470.0,
+        "max": 22901.0
+      },
+      "latency_standard_deviation_ms": 1938.7694550925853,
+      "latency_coefficient_of_variation": 0.08931540310004078
+    },
+    {
+      "case_id": "control-order-123456",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "123456"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "123456"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "123456"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 2,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 2,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 2,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 61797.333333333336,
+        "median": 27508.0,
+        "p50": 27508.0,
+        "p90": 110866.40000000001,
+        "p95": 121286.2,
+        "p99": 129622.04,
+        "min": 26178.0,
+        "max": 131706.0
+      },
+      "latency_standard_deviation_ms": 60546.33334342662,
+      "latency_coefficient_of_variation": 0.9797564082068257
+    },
+    {
+      "case_id": "control-return-defective-123456",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "123456",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "123456",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "123456",
+              "reason": "defective"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 21398.666666666668,
+        "median": 22024.0,
+        "p50": 22024.0,
+        "p90": 22324.0,
+        "p95": 22361.5,
+        "p99": 22391.5,
+        "min": 19773.0,
+        "max": 22399.0
+      },
+      "latency_standard_deviation_ms": 1420.2993815859152,
+      "latency_coefficient_of_variation": 0.06637326538659333
+    },
+    {
+      "case_id": "control-return-policy",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "return policy",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "return policy",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "return policy",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 6,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 6,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 6,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 47423.333333333336,
+        "median": 47326.0,
+        "p50": 47326.0,
+        "p90": 47604.4,
+        "p95": 47639.2,
+        "p99": 47667.04,
+        "min": 47270.0,
+        "max": 47674.0
+      },
+      "latency_standard_deviation_ms": 218.88200778806223,
+      "latency_coefficient_of_variation": 0.00461549183499112
+    },
+    {
+      "case_id": "escalation-exception",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "requires_manual_review",
+              "customer_message": "I need a human to approve a policy exception"
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "customer_message": "I need a human to approve a policy exception",
+              "reason": "requires_manual_review"
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "requires_manual_review",
+              "customer_message": "I need a human to approve a policy exception"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 22691.0,
+        "median": 22622.0,
+        "p50": 22622.0,
+        "p90": 24072.4,
+        "p95": 24253.7,
+        "p99": 24398.74,
+        "min": 21016.0,
+        "max": 24435.0
+      },
+      "latency_standard_deviation_ms": 1710.5440654949523,
+      "latency_coefficient_of_variation": 0.07538425214820643
+    },
+    {
+      "case_id": "escalation-frustrated",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ],
+        [
+          "escalate_to_human"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "customer_frustrated",
+              "customer_message": "I am frustrated and need a person to help me."
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "customer_frustrated",
+              "customer_message": "I am frustrated and need a person to help me."
+            }
+          }
+        ],
+        [
+          {
+            "name": "escalate_to_human",
+            "arguments": {
+              "reason": "customer_frustrated",
+              "customer_message": "I am frustrated and need a person to help me."
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 25482.333333333332,
+        "median": 25673.0,
+        "p50": 25673.0,
+        "p90": 25875.4,
+        "p95": 25900.7,
+        "p99": 25920.94,
+        "min": 24848.0,
+        "max": 25926.0
+      },
+      "latency_standard_deviation_ms": 563.7254059675981,
+      "latency_coefficient_of_variation": 0.022122205160474504
+    },
+    {
+      "case_id": "inventory-headphones",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "headphones"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "headphones"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "headphones"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 2,
+          "count": 2
+        },
+        {
+          "passes": 2,
+          "count": 2
+        },
+        {
+          "passes": 2,
+          "count": 2
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 23127.333333333332,
+        "median": 23874.0,
+        "p50": 23874.0,
+        "p90": 23886.0,
+        "p95": 23887.5,
+        "p99": 23888.7,
+        "min": 21619.0,
+        "max": 23889.0
+      },
+      "latency_standard_deviation_ms": 1306.2765148824094,
+      "latency_coefficient_of_variation": 0.056481933997971065
+    },
+    {
+      "case_id": "inventory-monitor",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ],
+        [
+          "check_product_availability"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "monitor"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "monitor"
+            }
+          }
+        ],
+        [
+          {
+            "name": "check_product_availability",
+            "arguments": {
+              "product_name": "monitor"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 2,
+          "count": 2
+        },
+        {
+          "passes": 2,
+          "count": 2
+        },
+        {
+          "passes": 2,
+          "count": 2
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 3,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 3,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 3,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 22972.0,
+        "median": 23624.0,
+        "p50": 23624.0,
+        "p90": 23657.6,
+        "p95": 23661.8,
+        "p99": 23665.16,
+        "min": 21626.0,
+        "max": 23666.0
+      },
+      "latency_standard_deviation_ms": 1165.8593397147015,
+      "latency_coefficient_of_variation": 0.05075132072587069
+    },
+    {
+      "case_id": "kb-express-time",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "",
+              "query": "express shipping arrival time"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "min_similarity_score": "0.5",
+              "categories": "",
+              "query": "express shipping arrival time",
+              "max_results": "5"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "express shipping arrival time",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": ""
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 22757.0,
+        "median": 22791.0,
+        "p50": 22791.0,
+        "p90": 23133.4,
+        "p95": 23176.2,
+        "p99": 23210.44,
+        "min": 22261.0,
+        "max": 23219.0
+      },
+      "latency_standard_deviation_ms": 479.9041570980606,
+      "latency_coefficient_of_variation": 0.02108819954730679
+    },
+    {
+      "case_id": "kb-return-window",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "return policy unused item",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "min_similarity_score": "0.5",
+              "categories": "general",
+              "query": "return policy unused item",
+              "max_results": "5"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "return policy unused item",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 83320.66666666667,
+        "median": 41333.0,
+        "p50": 41333.0,
+        "p90": 143417.0,
+        "p95": 156177.5,
+        "p99": 166385.9,
+        "min": 39691.0,
+        "max": 168938.0
+      },
+      "latency_standard_deviation_ms": 74151.33084667688,
+      "latency_coefficient_of_variation": 0.8899512427490204
+    },
+    {
+      "case_id": "kb-warranty-coverage",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ],
+        [
+          "search_vector_knowledge_base"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "standard warranty defects",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "standard warranty defects",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_vector_knowledge_base",
+            "arguments": {
+              "query": "standard warranty defects",
+              "max_results": "5",
+              "min_similarity_score": "0.5",
+              "categories": "general"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 32027.666666666668,
+        "median": 32787.0,
+        "p50": 32787.0,
+        "p90": 33079.0,
+        "p95": 33115.5,
+        "p99": 33144.7,
+        "min": 30144.0,
+        "max": 33152.0
+      },
+      "latency_standard_deviation_ms": 1641.4799216966783,
+      "latency_coefficient_of_variation": 0.051251935983368906
+    },
+    {
+      "case_id": "multi-order-345678",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "get_order_status",
+          "get_order_status"
+        ],
+        [
+          "get_order_status",
+          "get_order_status"
+        ],
+        [
+          "get_order_status",
+          "get_order_status"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          },
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          },
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          },
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "345678"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 43924.0,
+        "median": 44252.0,
+        "p50": 44252.0,
+        "p90": 46173.6,
+        "p95": 46413.8,
+        "p99": 46605.96,
+        "min": 40866.0,
+        "max": 46654.0
+      },
+      "latency_standard_deviation_ms": 2907.9071511999828,
+      "latency_coefficient_of_variation": 0.06620314978599359
+    },
+    {
+      "case_id": "order-234567",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "234567"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "234567"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "234567"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 24753.0,
+        "median": 25469.0,
+        "p50": 25469.0,
+        "p90": 25492.2,
+        "p95": 25495.1,
+        "p99": 25497.42,
+        "min": 23292.0,
+        "max": 25498.0
+      },
+      "latency_standard_deviation_ms": 1265.3461976866251,
+      "latency_coefficient_of_variation": 0.05111890266580314
+    },
+    {
+      "case_id": "order-334455",
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "334455"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "334455"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "334455"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 23077.333333333332,
+        "median": 23689.0,
+        "p50": 23689.0,
+        "p90": 23994.6,
+        "p95": 24032.8,
+        "p99": 24063.36,
+        "min": 21472.0,
+        "max": 24071.0
+      },
+      "latency_standard_deviation_ms": 1403.3183292942956,
+      "latency_coefficient_of_variation": 0.060809379880443826
+    },
+    {
+      "case_id": "order-789012",
+      "verdicts": [
+        "block",
+        "block",
+        "pass"
+      ],
+      "tool_selections": [
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ],
+        [
+          "get_order_status"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "789012"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "789012"
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_order_status",
+            "arguments": {
+              "order_id": "789012"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 1,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 2,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": false,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": false,
+      "hallucination_consistent": false,
+      "latency_ms": {
+        "mean": 24941.333333333332,
+        "median": 25773.0,
+        "p50": 25773.0,
+        "p90": 25840.2,
+        "p95": 25848.6,
+        "p99": 25855.32,
+        "min": 23194.0,
+        "max": 25857.0
+      },
+      "latency_standard_deviation_ms": 1513.8178005735476,
+      "latency_coefficient_of_variation": 0.06069514329253506
+    },
+    {
+      "case_id": "return-334455-defective",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "334455",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "334455",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "334455",
+              "reason": "defective"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 21941.666666666668,
+        "median": 21794.0,
+        "p50": 21794.0,
+        "p90": 23916.4,
+        "p95": 24181.7,
+        "p99": 24393.94,
+        "min": 19584.0,
+        "max": 24447.0
+      },
+      "latency_standard_deviation_ms": 2434.860639406973,
+      "latency_coefficient_of_variation": 0.110969721507344
+    },
+    {
+      "case_id": "return-789012-defective",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "789012",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "789012",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "789012",
+              "reason": "defective"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 1,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": false,
+      "latency_ms": {
+        "mean": 22115.0,
+        "median": 21824.0,
+        "p50": 21824.0,
+        "p90": 22808.0,
+        "p95": 22931.0,
+        "p99": 23029.4,
+        "min": 21467.0,
+        "max": 23054.0
+      },
+      "latency_standard_deviation_ms": 832.5581060802904,
+      "latency_coefficient_of_variation": 0.03764676039250691
+    },
+    {
+      "case_id": "return-889900-defective",
+      "verdicts": [
+        "block",
+        "block",
+        "block"
+      ],
+      "tool_selections": [
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ],
+        [
+          "initiate_return"
+        ]
+      ],
+      "arguments": [
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "889900",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "889900",
+              "reason": "defective"
+            }
+          }
+        ],
+        [
+          {
+            "name": "initiate_return",
+            "arguments": {
+              "order_id": "889900",
+              "reason": "defective"
+            }
+          }
+        ]
+      ],
+      "fact_outcomes": [
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        },
+        {
+          "passes": 0,
+          "count": 1
+        }
+      ],
+      "hallucination_outcomes": [
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        },
+        {
+          "supported_factual_claims": 0,
+          "contradicted_claims": 0,
+          "unsupported_claims": 0,
+          "fabricated_entities_or_values": 0,
+          "grounded_case": true
+        }
+      ],
+      "verdict_consistent": true,
+      "tool_selection_consistent": true,
+      "argument_consistent": true,
+      "fact_consistent": true,
+      "hallucination_consistent": true,
+      "latency_ms": {
+        "mean": 21632.666666666668,
+        "median": 21646.0,
+        "p50": 21646.0,
+        "p90": 23027.6,
+        "p95": 23200.3,
+        "p99": 23338.46,
+        "min": 19879.0,
+        "max": 23373.0
+      },
+      "latency_standard_deviation_ms": 1747.0381602395905,
+      "latency_coefficient_of_variation": 0.08075926038889907
+    }
+  ]
+}

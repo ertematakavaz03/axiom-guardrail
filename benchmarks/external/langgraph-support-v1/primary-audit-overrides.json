@@ -1,0 +1,7 @@
+{
+  "unknown-product": {
+    "classification": "BENCHMARK_EXPECTATION_BUG",
+    "exclude_from_agent_quality": true,
+    "reason": "The prompt 'unicorn keyboard' contains the known inventory key 'keyboard'. The pinned tool uses substring matching and therefore cannot reach its unknown-product branch for this prompt; the expected 'couldn't find' outcome is invalid for the frozen execution."
+  }
+}

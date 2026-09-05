@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "captured_at": "2026-09-03T18:56:30.3926095Z",
+  "axiom": {
+    "baseline_tag": "v0.2.0",
+    "baseline_commit": "a5f73a8a506c54cc509d1208859f710a9c08331b",
+    "branch": "benchmark/langgraph-support-v1"
+  },
+  "upstream": {
+    "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "checkout_mode": "detached",
+    "license": {
+      "declared": "MIT",
+      "source": "pyproject.toml",
+      "standalone_license_file_present": false
+    },
+    "source_sha256": {
+      "pyproject.toml": "3273e2f21fdbf22e924736b883a7025f1f719000a96d492b44afdd43f4648d90",
+      "langgraph.json": "e72a1c85f78328bc4945adac9a3c45a54b518df83217a19e9f0059cb40a49d87",
+      "data/knowledge_base.json": "64be6c46b62257ebab4704348f78c73c065fd635dc16263ff61779d0b6be2e9b",
+      "src/support_agent/agent.py": "370de2c35a57d751149a1012f6f13bd26e070c6aa0d4a58f016ec6145f5d5721",
+      "src/support_agent/tools.py": "4897a3a2f88c7fb4cb931a0b302a573c2c1f17b80dbea6034a85e5bfb700f0ad",
+      "src/support_agent/vector_store.py": "e54ca817557bb3893f574c28522aa2d7bee77cf54c10610dfad02685d1a926fa"
+    }
+  },
+  "truth_policy": "Pinned source code is authoritative where README or examples differ."
+}

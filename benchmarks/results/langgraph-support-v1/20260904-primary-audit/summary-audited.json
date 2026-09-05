@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "primary",
+  "updated_at": "2026-09-04T19:13:35.708231+00:00",
+  "selected_execution_count": 100,
+  "completed_execution_count": 100,
+  "verdicts": {
+    "pass": 57,
+    "warn": 0,
+    "block": 43
+  },
+  "quality": {
+    "eligible_case_count": 99,
+    "excluded_case_count": 1,
+    "task_success_rate": 0.5858585858585859,
+    "tool_selection_accuracy": 0.85,
+    "required_tool_recall": 1.0,
+    "unexpected_tool_rate": 0.0,
+    "forbidden_tool_rate": 0.0,
+    "tool_argument_accuracy": 0.9966666666666667,
+    "required_argument_accuracy": 1.0,
+    "fact_accuracy": 0.5979381443298969,
+    "expected_fact_accuracy": 0.5979381443298969,
+    "escalation_accuracy": 0.4,
+    "kb_answer_accuracy": 0.4666666666666667,
+    "order_status_accuracy": 0.7333333333333333,
+    "inventory_accuracy": 1.0,
+    "return_flow_accuracy": 0.13333333333333333,
+    "multi_turn_context_accuracy": 0.7,
+    "insufficient_information_accuracy": 0.5,
+    "completion_rate": 1.0,
+    "timeout_rate": 0.0,
+    "agent_error_rate": 0.0,
+    "tool_error_rate": 0.009433962264150943,
+    "retry_rate": 0.0,
+    "malformed_output_rate": 0.16,
+    "retrieval_failure_rate": 0.25
+  },
+  "hallucination": {
+    "factual_claim_count": 89,
+    "supported_factual_claims": 84,
+    "contradicted_claims": 3,
+    "unsupported_claims": 2,
+    "fabricated_entities_or_values": 0,
+    "hallucination_case_rate": 0.020202020202020204,
+    "unsupported_claim_rate": 0.02247191011235955,
+    "grounded_case_rate": 0.9797979797979798,
+    "scope": "deterministically extractable business values and identifiers"
+  },
+  "privacy_isolation": {
+    "evaluated_cases": 5,
+    "leakage_cases": 0,
+    "leakage_rate": 0.0,
+    "memory_isolation_pass_rate": 1.0
+  },
+  "retrieval": {
+    "evaluated_cases": 17,
+    "document_id_origin": "benchmark_derived_from_exact_returned_content",
+    "recall_at_1": 0.23529411764705882,
+    "recall_at_3": 0.23529411764705882,
+    "recall_at_5": 0.23529411764705882,
+    "mrr": 0.23529411764705882,
+    "ndcg": 0.23529411764705882,
+    "citation_precision": null,
+    "citation_recall": null,
+    "citation_status": "N/A_no_structured_citations"
+  },
+  "performance": {
+    "total_case_latency_ms": {
+      "mean": 28053.29,
+      "median": 22702.5,
+      "p50": 22702.5,
+      "p90": 45964.4,
+      "p95": 46687.7,
+      "p99": 55637.09000000045,
+      "min": 5621.0,
+      "max": 142568.0
+    },
+    "model_latency_ms": {
+      "mean": 24576.96702,
+      "median": 20176.737,
+      "p50": 20176.737,
+      "p90": 44255.5141,
+      "p95": 45029.77415,
+      "p99": 45648.130540000006,
+      "min": 4698.699,
+      "max": 47079.328
+    },
+    "model_latency_status": "measured_from_ollama_response_metadata",
+    "queue_wait_ms": null,
+    "queue_wait_status": "N/A_not_returned_by_wait_protocol",
+    "tool_latency_ms": null,
+    "tool_latency_status": "N/A_not_exposed",
+    "retrieval_latency_ms": null,
+    "retrieval_latency_status": "N/A_not_exposed",
+    "time_to_first_token_ms": null,
+    "time_to_first_token_status": "N/A_non_streaming_wait_protocol",
+    "warmup_excluded_ms": 89168,
+    "retry_count": {
+      "total": 0,
+      "mean_per_case": 0.0
+    },
+    "tool_call_count": {
+      "total": 106,
+      "mean_per_case": 1.06
+    },
+    "token_counts": {
+      "input_tokens": 496857,
+      "output_tokens": 7740,
+      "total_tokens": 504597
+    },
+    "token_counts_status": "measured_from_model_usage_metadata"
+  },
+  "errors": {
+    "execution_errors": 0,
+    "timeouts": 0
+  },
+  "audit": {
+    "completed": true,
+    "audited_at": "2026-09-04T19:13:35.674254+00:00",
+    "audited_case_count": 100,
+    "non_pass_case_count": 43,
+    "case_classification_counts": {
+      "BENCHMARK_EXPECTATION_BUG": 1,
+      "REAL_AGENT_FAILURE": 42
+    },
+    "finding_classification_counts": {
+      "BENCHMARK_EXPECTATION_BUG": 1,
+      "REAL_AGENT_FAILURE": 64
+    },
+    "validated_agent_failure_case_count": 42,
+    "unresolved_case_count": 0
+  }
+}

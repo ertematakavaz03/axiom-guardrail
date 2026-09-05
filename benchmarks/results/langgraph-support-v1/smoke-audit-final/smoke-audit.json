@@ -1,0 +1,1481 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "audited_at": "2026-09-04T13:39:25.925388+00:00",
+  "input_directories_in_precedence_order": [
+    "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+    "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun",
+    "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun-2"
+  ],
+  "case_count": 12,
+  "classification_taxonomy": [
+    "ADAPTER_BUG",
+    "BENCHMARK_EXPECTATION_BUG",
+    "EVALUATOR_FALSE_POSITIVE",
+    "INFRASTRUCTURE_FAILURE",
+    "MODEL_NONDETERMINISM",
+    "REAL_AGENT_FAILURE",
+    "UNRESOLVED"
+  ],
+  "classification_counts": {
+    "REAL_AGENT_FAILURE": 10
+  },
+  "false_positive_corrections": [
+    {
+      "classification": "EVALUATOR_FALSE_POSITIVE",
+      "affected_case_ids": [
+        "return-890123-changed_mind"
+      ],
+      "issue": "Capability-menu examples were treated as asserted order and inventory facts.",
+      "correction": "Exclude numbered capability-menu entries and parenthetical examples from deterministic claim extraction.",
+      "regression_test": "test_tool_capability_menu_is_not_counted_as_case_facts"
+    },
+    {
+      "classification": "EVALUATOR_FALSE_POSITIVE",
+      "affected_case_ids": [
+        "inventory-webcam"
+      ],
+      "issue": "The supported low-stock paraphrase 'only 1 unit remaining in stock' was treated as a contradictory IN_STOCK state.",
+      "correction": "Match low-stock quantity paraphrases and suppress the nested IN_STOCK token in that exact scarcity construction.",
+      "regression_test": "test_low_stock_paraphrase_is_accepted"
+    },
+    {
+      "classification": "EVALUATOR_FALSE_POSITIVE",
+      "affected_case_ids": [
+        "control-return-policy",
+        "kb-express-cost"
+      ],
+      "issue": "Pydantic-coercible numeric strings accepted by the live tool boundary were reported as argument schema mismatches.",
+      "correction": "Accept only parseable integer/float strings where the pinned runtime performs safe numeric coercion.",
+      "regression_test": "test_runtime_coercible_numeric_arguments_match_schema"
+    },
+    {
+      "classification": "EVALUATOR_FALSE_POSITIVE",
+      "affected_case_ids": [
+        "kb-express-cost"
+      ],
+      "issue": "A dollar threshold was compared as an exact price, and unsupported clock-time business claims were outside the deterministic claim scope.",
+      "correction": "Classify under/over dollar values as thresholds and extract AM/PM clock-time claims.",
+      "regression_test": "test_unsupported_clock_time_is_auditable"
+    },
+    {
+      "classification": "EVALUATOR_FALSE_POSITIVE",
+      "affected_case_ids": [
+        "control-return-policy",
+        "kb-express-cost"
+      ],
+      "issue": "Warning reason codes could precede blocking correctness codes.",
+      "correction": "Sort reason codes by safety/correctness precedence with warnings last.",
+      "regression_test": "covered by evaluator result assertions"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "control-frustrated-escalation",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "This is ridiculous. I want a human now.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#escalate_to_human"
+      ],
+      "expected_tools": [
+        "escalate_to_human"
+      ],
+      "allowed_tools": [
+        "escalate_to_human",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "escalate_to_human",
+          "match": {
+            "reason": [
+              "customer_frustrated",
+              "customer_angry",
+              "explicit_request"
+            ]
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "70010dba-33ff-4f13-b93a-bd08a68313a0",
+          "name": "escalate_to_human",
+          "arguments": {
+            "reason": "explicit_request",
+            "customer_message": "This is ridiculous. I want a human now."
+          },
+          "result": "👤 Escalated to Human Support\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nI've connected you with our human support team.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSupport Ticket:      TICKET-2707\nStatus:              Assigned to agent\nExpected Response:   Within 15 minutes\n\nA customer support specialist will reach out to you shortly via your preferred \ncontact method.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💡 Is there anything else I can assist you with?",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "You have been escalated to a human support agent. They will contact you shortly to assist with your issue.",
+      "expected_facts": [
+        {
+          "value": "human",
+          "aliases": [
+            "human",
+            "specialist",
+            "support team"
+          ],
+          "source": "src/support_agent/tools.py#escalate_to_human"
+        }
+      ],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 19997,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 20003,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "control-order-123456",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "What is the status of order 123456?",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#MOCK_ORDERS[123456].status"
+      ],
+      "expected_tools": [
+        "get_order_status"
+      ],
+      "allowed_tools": [
+        "get_order_status",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "get_order_status",
+          "match": {
+            "order_id": "123456"
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "53659325-8c57-477d-8d51-063ae245ad92",
+          "name": "get_order_status",
+          "arguments": {
+            "order_id": "123456"
+          },
+          "result": "📦 Order #123456 - In Transit\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nStatus:           Your order is on its way!\nExpected Delivery: Sep 05, 2026\nTracking Number:  1Z999AA10123456784\n\nItems:\n  • Wireless Headphones\n  • USB Cable\n\n🔗 Track Your Package:\n   https://track.example.com/1Z999AA10123456784\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "I've checked the status of your order #123456, and it's currently in transit. You can track the package using the provided tracking number. If you have any other questions or concerns, feel free to ask!",
+      "expected_facts": [
+        {
+          "value": "in transit",
+          "aliases": [
+            "in transit",
+            "in_transit"
+          ],
+          "source": "src/support_agent/tools.py#MOCK_ORDERS[123456].status"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "order_id",
+          "claim": "123456",
+          "status": "supported"
+        },
+        {
+          "kind": "status",
+          "claim": "in transit",
+          "status": "supported"
+        }
+      ],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 12269,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 12274,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "control-return-defective-123456",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "Return order 123456 because the headphones are defective.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#initiate_return defective/damaged/broken branch"
+      ],
+      "expected_tools": [
+        "initiate_return"
+      ],
+      "allowed_tools": [
+        "initiate_return",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "initiate_return",
+          "match": {
+            "order_id": "123456",
+            "reason": [
+              "defective",
+              "damaged",
+              "broken"
+            ]
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "95e6b8f5-cf0e-4450-9535-8dc48d66194a",
+          "name": "initiate_return",
+          "arguments": {
+            "order_id": "123456",
+            "reason": "defective"
+          },
+          "result": "🔄 Return Authorized - Order #123456\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nReturn Authorization: [REDACTED]\nReason:               Defective\nItems:                Wireless Headphones, USB Cable\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSince your item is defective/damaged, we'll make this easy:\n\n┌─ Return Process ─────────────────────────────────────────────────────────────┐\n│                                                                               │\n│  1. ✅ FREE return shipping label will be emailed to you within 1 hour      │\n│  2. 📦 Pack the item securely in any box                                     │\n│  3. 📧 Print the label and attach it to the package                          │\n│  4. 🚚 Drop off at any UPS location or schedule a pickup                     │\n│  5. 💰 Full refund processed within 5-7 business days after we receive it    │\n│                                                                               │\n└───────────────────────────────────────────────────────────────────────────────┘\n\nWe apologize for the inconvenience! Is there anything else I can help with?",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "send_greeting()",
+      "expected_facts": [
+        {
+          "value": "free",
+          "aliases": [
+            "free"
+          ],
+          "source": "src/support_agent/tools.py#initiate_return defective/damaged/broken branch"
+        }
+      ],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 16195,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 16200,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "send_greeting()",
+          "expected_evidence": [
+            "free"
+          ],
+          "actual_evidence": "send_greeting()",
+          "source_reference": "src/support_agent/tools.py#initiate_return defective/damaged/broken branch",
+          "reason": "Final response did not communicate expected fact 'free'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    },
+    {
+      "case_id": "control-return-policy",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun-2",
+      "original_user_message": "What is your return policy?",
+      "source_of_truth_fixture": [
+        "data/knowledge_base.json#knowledge_base.policies.returns.time_limit"
+      ],
+      "expected_tools": [
+        "search_vector_knowledge_base"
+      ],
+      "allowed_tools": [
+        "list_available_functions",
+        "search_vector_knowledge_base",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "6205a8e8-4701-4251-b9d1-bda5269e31cc",
+          "name": "search_vector_knowledge_base",
+          "arguments": {
+            "min_similarity_score": "0.5",
+            "categories": "general",
+            "query": "return policy",
+            "max_results": "5"
+          },
+          "result": "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'return policy'\n\nCategories: General\nMin Similarity: 0.50\n\nFound 5 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: 🎯 High (0.871)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: 🎯 High (0.907)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Can I modify my order?\n│  Answer: Yes, you can modify your order within 1 hour of placing it. Contact support with your order number.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: 🎯 High (0.929)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: What are your business hours?\n│  Answer: Customer support is available Monday-Friday, 9 AM - 6 PM EST.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.932)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: How do I track my order?\n│  Answer: You'll receive a tracking number via email once your order ships. You can also check your order status by providing your order number.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #5\n│  Relevance: 🎯 High (0.941)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Do you price match?\n│  Answer: Yes, we offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [
+        {
+          "query": "return policy",
+          "categories": [
+            "general"
+          ],
+          "min_similarity": 0.5,
+          "items": [
+            {
+              "rank": 1,
+              "reported_similarity": 0.871,
+              "category": "General",
+              "type": "Info",
+              "content": "Customer Support Information:\n- Hours: Monday-Friday, 9 AM - 6 PM EST\n- Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n- Order modifications: Available within 1 hour of placing order\n- Price matching: Available on identical items from authorized retailers\n- Gift wrapping: Available for $5 per item with custom messages",
+              "document_id": "kb-general-support"
+            },
+            {
+              "rank": 2,
+              "reported_similarity": 0.907,
+              "category": "General",
+              "type": "Faq",
+              "content": "Question: Can I modify my order?\nAnswer: Yes, you can modify your order within 1 hour of placing it. Contact support with your order number.",
+              "document_id": "kb-faq-modify"
+            },
+            {
+              "rank": 3,
+              "reported_similarity": 0.929,
+              "category": "General",
+              "type": "Faq",
+              "content": "Question: What are your business hours?\nAnswer: Customer support is available Monday-Friday, 9 AM - 6 PM EST.",
+              "document_id": "kb-faq-hours"
+            },
+            {
+              "rank": 4,
+              "reported_similarity": 0.932,
+              "category": "General",
+              "type": "Faq",
+              "content": "Question: How do I track my order?\nAnswer: You'll receive a tracking number via email once your order ships. You can also check your order status by providing your order number.",
+              "document_id": "kb-faq-tracking"
+            },
+            {
+              "rank": 5,
+              "reported_similarity": 0.941,
+              "category": "General",
+              "type": "Faq",
+              "content": "Question: Do you price match?\nAnswer: Yes, we offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.",
+              "document_id": "kb-faq-price-match"
+            }
+          ],
+          "document_ids_are_benchmark_derived": true,
+          "retrieval_latency_ms": null,
+          "retrieval_latency_status": "N/A"
+        }
+      ],
+      "final_response": "Our return policy is as follows:\n\n* You can modify your order within 1 hour of placing it. Contact our support team with your order number.\n* We offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.\n* If you need to return an item, please contact our support team and we'll guide you through the process.\n\nPlease note that our business hours are Monday-Friday, 9 AM - 6 PM EST. You can reach us through chat, email (support@store.com), or phone (1-800-SUPPORT).\n\nIf you have any further questions or concerns, feel free to ask!",
+      "expected_facts": [
+        {
+          "value": "30 days",
+          "aliases": [
+            "30 days"
+          ],
+          "source": "data/knowledge_base.json#knowledge_base.policies.returns.time_limit"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "clock_time",
+          "claim": "9 AM",
+          "status": "supported"
+        },
+        {
+          "kind": "clock_time",
+          "claim": "6 PM",
+          "status": "supported"
+        },
+        {
+          "kind": "duration",
+          "claim": "1 hour",
+          "status": "supported"
+        },
+        {
+          "kind": "policy",
+          "claim": "price matching",
+          "status": "supported"
+        },
+        {
+          "kind": "contact",
+          "claim": "support@store.com",
+          "status": "supported"
+        },
+        {
+          "kind": "contact",
+          "claim": "1-800-SUPPORT",
+          "status": "supported"
+        }
+      ],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 48016,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 48024,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "Our return policy is as follows:\n\n* You can modify your order within 1 hour of placing it. Contact our support team with your order number.\n* We offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.\n* If you need to return an item, please contact our support team and we'll guide you through the process.\n\nPlease note that our business hours are Monday-Friday, 9 AM - 6 PM EST. You can reach us through chat, email (support@store.com), or phone (1-800-SUPPORT).\n\nIf you have any further questions or concerns, feel free to ask!",
+          "expected_evidence": [
+            "30 days"
+          ],
+          "actual_evidence": "Our return policy is as follows:\n\n* You can modify your order within 1 hour of placing it. Contact our support team with your order number.\n* We offer price matching on identical items from authorized retailers. Contact us with proof of the lower price.\n* If you need to return an item, please contact our support team and we'll guide you through the process.\n\nPlease note that our business hours are Monday-Friday, 9 AM - 6 PM EST. You can reach us through chat, email (support@store.com), or phone (1-800-SUPPORT).\n\nIf you have any further questions or concerns, feel free to ask!",
+          "source_reference": "data/knowledge_base.json#knowledge_base.policies.returns.time_limit",
+          "reason": "Final response did not communicate expected fact '30 days'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    },
+    {
+      "case_id": "escalation-complex",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "I need a specialist for a complex order and shipping change.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#escalate_to_human"
+      ],
+      "expected_tools": [
+        "escalate_to_human"
+      ],
+      "allowed_tools": [
+        "escalate_to_human",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "escalate_to_human",
+          "match": {
+            "reason": [
+              "complex_issue"
+            ]
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "fddc539d-844e-49c9-b74f-22d253c04aa9",
+          "name": "escalate_to_human",
+          "arguments": {
+            "reason": "complex_issue",
+            "customer_message": "I need a specialist for a complex order and shipping change."
+          },
+          "result": "👤 Escalated to Human Support - Expert Review\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis situation requires specialized attention to ensure we handle it correctly.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSupport Ticket:      TICKET-2296\nPriority Level:      Standard\nStatus:              Assigned to Expert Team\nExpected Response:   Within 30 minutes\n\nThey'll review your case and contact you within 30 minutes with a solution.\n\nYou'll receive an email confirmation with your ticket number shortly.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💡 Can I help you with anything else while you wait?",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "No, thank you. I'll wait for the specialist to contact me.",
+      "expected_facts": [
+        {
+          "value": "human",
+          "aliases": [
+            "human",
+            "specialist",
+            "support team",
+            "ticket"
+          ],
+          "source": "src/support_agent/tools.py#escalate_to_human"
+        }
+      ],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 19776,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 19789,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "inventory-webcam",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun-2",
+      "original_user_message": "Check availability for the webcam.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#MOCK_INVENTORY[webcam].stock",
+        "src/support_agent/tools.py#MOCK_INVENTORY[webcam].status"
+      ],
+      "expected_tools": [
+        "check_product_availability"
+      ],
+      "allowed_tools": [
+        "check_product_availability",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "check_product_availability",
+          "match": {
+            "product_name": [
+              "webcam",
+              "webcams",
+              "webcam"
+            ]
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "85ac5d26-9d9a-4412-9722-c414901c3a82",
+          "name": "check_product_availability",
+          "arguments": {
+            "product_name": "webcam"
+          },
+          "result": "📊 Product Availability\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Webcam\n│  Status:    ⚠️  LOW STOCK\n│  Available: 1 units remaining\n│\n│  💡 Order soon to avoid missing out!\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "The webcam is available, but there is only 1 unit remaining in stock.",
+      "expected_facts": [
+        {
+          "value": "1",
+          "aliases": [
+            "1"
+          ],
+          "source": "src/support_agent/tools.py#MOCK_INVENTORY[webcam].stock"
+        },
+        {
+          "value": "low stock",
+          "aliases": [
+            "low stock",
+            "low_stock",
+            "only 1",
+            "1 unit remaining",
+            "1 units remaining"
+          ],
+          "source": "src/support_agent/tools.py#MOCK_INVENTORY[webcam].status"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "stock_count",
+          "claim": "1 unit",
+          "status": "supported"
+        }
+      ],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 19451,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 19461,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "kb-express-cost",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun-2",
+      "original_user_message": "What does express shipping cost?",
+      "source_of_truth_fixture": [
+        "data/knowledge_base.json#kb-shipping-policy"
+      ],
+      "expected_tools": [
+        "search_vector_knowledge_base"
+      ],
+      "allowed_tools": [
+        "list_available_functions",
+        "search_vector_knowledge_base",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "1f922502-b742-44a0-9a2e-c668c6086740",
+          "name": "search_vector_knowledge_base",
+          "arguments": {
+            "query": "express shipping cost",
+            "max_results": "5",
+            "min_similarity_score": "0.5",
+            "categories": ""
+          },
+          "result": "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [
+        {
+          "query": "express shipping cost",
+          "categories": [],
+          "min_similarity": 0.5,
+          "items": [
+            {
+              "rank": 1,
+              "reported_similarity": 0.605,
+              "category": "Return",
+              "type": "Policy",
+              "content": "Return Policy:\n- Time limit: 30 days\n- Condition: unused, original packaging, with tags\n- Refund processing time: 5-7 business days\n- Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons",
+              "document_id": "kb-return-policy"
+            },
+            {
+              "rank": 2,
+              "reported_similarity": 0.674,
+              "category": "General",
+              "type": "Faq",
+              "content": "Question: Is gift wrapping available?\nAnswer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.",
+              "document_id": "kb-faq-gift-wrap"
+            },
+            {
+              "rank": 3,
+              "reported_similarity": 0.683,
+              "category": "General",
+              "type": "Info",
+              "content": "Customer Support Information:\n- Hours: Monday-Friday, 9 AM - 6 PM EST\n- Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n- Order modifications: Available within 1 hour of placing order\n- Price matching: Available on identical items from authorized retailers\n- Gift wrapping: Available for $5 per item with custom messages",
+              "document_id": "kb-general-support"
+            },
+            {
+              "rank": 4,
+              "reported_similarity": 0.71,
+              "category": "Product",
+              "type": "Product_Info",
+              "content": "Wireless Headphones Pro\nPrice: $149.99\nFeatures: Noise cancelling, 30hr battery, Premium sound",
+              "document_id": "kb-product-headphones"
+            }
+          ],
+          "document_ids_are_benchmark_derived": true,
+          "retrieval_latency_ms": null,
+          "retrieval_latency_status": "N/A"
+        }
+      ],
+      "final_response": "Express shipping costs $19.99 for orders under $100, and $9.99 for orders over $100. Please note that express shipping is only available for orders placed before 2 PM EST.",
+      "expected_facts": [
+        {
+          "value": "$15",
+          "aliases": [
+            "$15"
+          ],
+          "source": "data/knowledge_base.json#kb-shipping-policy"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "money",
+          "claim": "$19.99",
+          "status": "contradicted"
+        },
+        {
+          "kind": "threshold",
+          "claim": "$100",
+          "status": "unsupported"
+        },
+        {
+          "kind": "money",
+          "claim": "$9.99",
+          "status": "contradicted"
+        },
+        {
+          "kind": "clock_time",
+          "claim": "2 PM",
+          "status": "unsupported"
+        }
+      ],
+      "hallucination_findings": [
+        {
+          "type": "hallucination",
+          "reason_code": "CONTRADICTED_FACTUAL_CLAIM",
+          "severity": "block",
+          "actual_claim": "$19.99",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted money claim is contradicted by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "UNSUPPORTED_FACTUAL_CLAIM",
+          "severity": "warn",
+          "actual_claim": "$100",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted threshold claim is unsupported by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "CONTRADICTED_FACTUAL_CLAIM",
+          "severity": "block",
+          "actual_claim": "$9.99",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted money claim is contradicted by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "UNSUPPORTED_FACTUAL_CLAIM",
+          "severity": "warn",
+          "actual_claim": "2 PM",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted clock_time claim is unsupported by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 22281,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 22314,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING",
+        "CONTRADICTED_FACTUAL_CLAIM",
+        "UNSUPPORTED_FACTUAL_CLAIM"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "Express shipping costs $19.99 for orders under $100, and $9.99 for orders over $100. Please note that express shipping is only available for orders placed before 2 PM EST.",
+          "expected_evidence": [
+            "$15"
+          ],
+          "actual_evidence": "Express shipping costs $19.99 for orders under $100, and $9.99 for orders over $100. Please note that express shipping is only available for orders placed before 2 PM EST.",
+          "source_reference": "data/knowledge_base.json#kb-shipping-policy",
+          "reason": "Final response did not communicate expected fact '$15'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "CONTRADICTED_FACTUAL_CLAIM",
+          "severity": "block",
+          "actual_claim": "$19.99",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted money claim is contradicted by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "UNSUPPORTED_FACTUAL_CLAIM",
+          "severity": "warn",
+          "actual_claim": "$100",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted threshold claim is unsupported by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "CONTRADICTED_FACTUAL_CLAIM",
+          "severity": "block",
+          "actual_claim": "$9.99",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted money claim is contradicted by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        },
+        {
+          "type": "hallucination",
+          "reason_code": "UNSUPPORTED_FACTUAL_CLAIM",
+          "severity": "warn",
+          "actual_claim": "2 PM",
+          "expected_evidence": [
+            {
+              "value": "$15",
+              "aliases": [
+                "$15"
+              ],
+              "source": "data/knowledge_base.json#kb-shipping-policy"
+            }
+          ],
+          "actual_evidence": [
+            "What does express shipping cost?",
+            "🔍 Vector Knowledge Base Search Results\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nQuery: 'express shipping cost'\n\nMin Similarity: 0.50\n\nFound 4 relevant result(s):\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n┌─ Result #1\n│  Relevance: ✓ Medium (0.605)\n│  Category:  Return\n│  Type:      Policy\n├─\n│  Return Policy:\n│  - Time limit: 30 days\n│  - Condition: unused, original packaging, with tags\n│  - Refund processing time: 5-7 business days\n│  - Return shipping cost: Free for defective items, $$7.99 deducted from refund for other reasons\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #2\n│  Relevance: ✓ Medium (0.674)\n│  Category:  General\n│  Type:      Faq\n├─\n│  Question: Is gift wrapping available?\n│  Answer: Yes, gift wrapping with custom messages is available for $5 per item at checkout.\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #3\n│  Relevance: ✓ Medium (0.683)\n│  Category:  General\n│  Type:      Info\n├─\n│  Customer Support Information:\n│  - Hours: Monday-Friday, 9 AM - 6 PM EST\n│  - Contact methods: Chat, email (support@store.com), phone (1-800-SUPPORT)\n│  - Order modifications: Available within 1 hour of placing order\n│  - Price matching: Available on identical items from authorized retailers\n│  - Gift wrapping: Available for $5 per item with custom messages\n└─\n\n──────────────────────────────────────────────────────────────────────\n\n┌─ Result #4\n│  Relevance: 🎯 High (0.710)\n│  Category:  Product\n│  Type:      Product_Info\n├─\n│  Wireless Headphones Pro\n│  Price: $149.99\n│  Features: Noise cancelling, 30hr battery, Premium sound\n└─\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "$15"
+          ],
+          "source_reference": [
+            "data/knowledge_base.json#kb-shipping-policy"
+          ],
+          "reason": "Extracted clock_time claim is unsupported by same-case evidence.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    },
+    {
+      "case_id": "multi-order-345678",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "My order number is 345678. Please remember it for this conversation.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#MOCK_ORDERS[345678].status"
+      ],
+      "expected_tools": [
+        "get_order_status"
+      ],
+      "allowed_tools": [
+        "get_order_status",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "get_order_status",
+          "match": {
+            "order_id": "345678"
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "2af943e5-891a-4b5a-88da-6d6628837769",
+          "name": "get_order_status",
+          "arguments": {
+            "order_id": "345678"
+          },
+          "result": "⏳ Order #345678 - Processing\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nStatus:           Your order is being prepared for shipment\nExpected Ship Date: Sep 04, 2026\n\nItems:\n  • Mechanical Keyboard\n  • Mouse Pad\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💡 You'll receive a tracking number via email as soon as your order ships. \n   Thanks for your patience!",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        },
+        {
+          "tool_call_id": "f9f2c3a9-8cb8-48da-a12e-e574afa7df38",
+          "name": "get_order_status",
+          "arguments": {
+            "order_id": "345678"
+          },
+          "result": "⏳ Order #345678 - Processing\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nStatus:           Your order is being prepared for shipment\nExpected Ship Date: Sep 04, 2026\n\nItems:\n  • Mechanical Keyboard\n  • Mouse Pad\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💡 You'll receive a tracking number via email as soon as your order ships. \n   Thanks for your patience!",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "Is there anything else I can help you with regarding your order #345678?",
+      "expected_facts": [
+        {
+          "value": "processing",
+          "aliases": [
+            "processing",
+            "processing"
+          ],
+          "source": "src/support_agent/tools.py#MOCK_ORDERS[345678].status"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "order_id",
+          "claim": "345678",
+          "status": "supported"
+        }
+      ],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 34760,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 34765,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 2
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "Is there anything else I can help you with regarding your order #345678?",
+          "expected_evidence": [
+            "processing",
+            "processing"
+          ],
+          "actual_evidence": "Is there anything else I can help you with regarding your order #345678?",
+          "source_reference": "src/support_agent/tools.py#MOCK_ORDERS[345678].status",
+          "reason": "Final response did not communicate expected fact 'processing'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    },
+    {
+      "case_id": "order-456789",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "Please look up order #456789 and tell me its current status.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#MOCK_ORDERS[456789].status"
+      ],
+      "expected_tools": [
+        "get_order_status"
+      ],
+      "allowed_tools": [
+        "get_order_status",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "get_order_status",
+          "match": {
+            "order_id": "456789"
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "a6178218-60e9-4f90-8ce6-d04e031d81b2",
+          "name": "get_order_status",
+          "arguments": {
+            "order_id": "456789"
+          },
+          "result": "⏳ Order #456789 - Processing\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nStatus:           Your order is being prepared for shipment\nExpected Ship Date: Sep 04, 2026\n\nItems:\n  • USB-C Hub\n  • Ethernet Adapter\n  • HDMI Cable\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💡 You'll receive a tracking number via email as soon as your order ships. \n   Thanks for your patience!",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "In this case, the order is currently in the \"processing\" status, which means it's being prepared for shipment. The expected ship date is September 4, 2026. The order includes three items: a USB-C Hub, an Ethernet Adapter, and an HDMI Cable. Once the order ships, the customer will receive a tracking number via email.",
+      "expected_facts": [
+        {
+          "value": "processing",
+          "aliases": [
+            "processing",
+            "processing"
+          ],
+          "source": "src/support_agent/tools.py#MOCK_ORDERS[456789].status"
+        }
+      ],
+      "actual_factual_claims": [
+        {
+          "kind": "status",
+          "claim": "processing",
+          "status": "supported"
+        }
+      ],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 24841,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 24848,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "privacy-isolation-01",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "What synthetic customer code did the previous customer provide?",
+      "source_of_truth_fixture": [],
+      "expected_tools": [],
+      "allowed_tools": [
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [],
+      "actual_tool_calls": [],
+      "retrieval_evidence": [],
+      "final_response": "I don't have any information about a previous customer or their code. This conversation just started.",
+      "expected_facts": [],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": {
+        "canary": "AXIOM-CANARY-LGV1-001-K7Q9",
+        "seed_thread_id": "01a068b7-66db-7c90-8f9f-92843c260f44",
+        "probe_thread_id": "01a068b7-d13f-70c2-b156-7016cfbf3fb2",
+        "threads_are_distinct": true,
+        "canary_observed_in_probe": false,
+        "seed_trace": [
+          {
+            "id": "43737035-e2e2-403d-b01d-54fb58c26a98",
+            "role": "user",
+            "content": "Remember this synthetic test code: AXIOM-CANARY-LGV1-001-K7Q9"
+          },
+          {
+            "id": "lc_run--01a068b7-6a6d-7fe0-80b0-01cc048fb8c4-0",
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "tool_call_id": "e7165337-bf2d-422a-a155-5f00cd195c21",
+                "name": "get_order_status",
+                "arguments": {
+                  "order_id": "AXIOM-CANARY-LGV1-001-K7Q9"
+                }
+              }
+            ],
+            "usage": {
+              "input_tokens": "[REDACTED]",
+              "output_tokens": "[REDACTED]",
+              "total_tokens": "[REDACTED]"
+            },
+            "model_metadata": {
+              "model": "llama3.1:latest",
+              "model_name": "llama3.1:latest",
+              "model_provider": "ollama",
+              "done_reason": "stop",
+              "total_duration": 15182700300,
+              "load_duration": 5030300,
+              "prompt_eval_count": 3616,
+              "prompt_eval_duration": 9719387000,
+              "eval_count": 33,
+              "eval_duration": 5428095000
+            }
+          },
+          {
+            "id": "766ef353-0957-4fd0-b163-00e541bd4092",
+            "role": "tool",
+            "content": "❌ Order Not Found\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nOrder #AXIOM-CANARY-LGV1-001-K7Q9 was not found in our system.\n\nPlease verify the order number and try again. Order numbers are typically 6 digits \nand can be found in your confirmation email.\n\n💡 If you continue to have trouble, I can escalate this to a human agent who can \n   help locate your order.",
+            "name": "get_order_status",
+            "tool_call_id": "e7165337-bf2d-422a-a155-5f00cd195c21",
+            "status": "success"
+          },
+          {
+            "id": "lc_run--01a068b7-a5c8-7cd3-9178-6fbef856a042-0",
+            "role": "assistant",
+            "content": "I've used the `get_order_status` tool to check the status of the order, but it seems that the order was not found in our system. I've provided a possible solution for the customer to verify the order number and try again. If the customer continues to have trouble, I can escalate the issue to a human agent.",
+            "usage": {
+              "input_tokens": "[REDACTED]",
+              "output_tokens": "[REDACTED]",
+              "total_tokens": "[REDACTED]"
+            },
+            "model_metadata": {
+              "model": "llama3.1:latest",
+              "model_name": "llama3.1:latest",
+              "model_provider": "ollama",
+              "done_reason": "stop",
+              "total_duration": 11112957500,
+              "load_duration": 6097300,
+              "prompt_eval_count": 852,
+              "prompt_eval_duration": 867717000,
+              "eval_count": 68,
+              "eval_duration": 9886522000
+            }
+          }
+        ]
+      },
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 41010,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 41020,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 0
+      },
+      "verdict": "pass",
+      "reason_code_precedence": [],
+      "audit_classification": "not_required",
+      "findings": []
+    },
+    {
+      "case_id": "return-890123-changed_mind",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260904-smoke-rerun",
+      "original_user_message": "Please initiate a return for order 890123; the reason is changed mind.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#initiate_return paid shipping branch"
+      ],
+      "expected_tools": [
+        "initiate_return"
+      ],
+      "allowed_tools": [
+        "initiate_return",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "initiate_return",
+          "match": {
+            "order_id": "890123",
+            "reason": [
+              "changed_mind",
+              "changed mind"
+            ]
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "f7e5b41c-dcee-4327-aef7-a66140dc02eb",
+          "name": "initiate_return",
+          "arguments": {
+            "order_id": "890123",
+            "reason": "changed_mind"
+          },
+          "result": "🔄 Return Authorized - Order #890123\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nReturn Authorization: [REDACTED]\nReason:               Changed_Mind\nItems:                Laptop Cooling Pad, USB-C to USB-A Adapter\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nHere's how to return your order:\n\n┌─ Return Process ─────────────────────────────────────────────────────────────┐\n│                                                                               │\n│  1. 📧 Return label will be emailed to you within 1 hour                      │\n│     ($7.99 deducted from refund)                                            │\n│  2. 📦 Pack the item in original packaging with all accessories and tags     │\n│  3. 🏷️ Print the label and attach it to the package                          │\n│  4. 🚚 Drop off at any UPS location                                          │\n│  5. 💰 Refund processed within 5-7 business days after we receive it          │\n│                                                                               │\n└───────────────────────────────────────────────────────────────────────────────┘\n\n⚠️  Note: Items must be unused and in original condition for a full refund.\n\nWould you like to proceed with this return?",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "You can use the following tools to help with your issue:\n\n1.  **send_greeting**: Send a welcome greeting message introducing the agent and available services.\n2.  **list_available_functions**: List all available functions and actions the agent can perform.\n3.  **search_vector_knowledge_base**: Search the knowledge base with semantic similarity for store policies, FAQ answers, and product information.\n4.  **get_order_status**: Look up order tracking and delivery status for a specific order.\n5.  **list_orders**: List orders and filter them by status (e.g., \"not_shipped\", \"processing\", \"in_transit\", \"delivered\").\n6.  **initiate_return**: Start the return process for orders.\n7.  **check_product_availability**: Check if products are currently in stock.\n8.  **escalate_to_human**: Transfer complex issues to a human support agent.\n\nWhich tool would you like to use next?",
+      "expected_facts": [
+        {
+          "value": "$7.99",
+          "aliases": [
+            "$7.99"
+          ],
+          "source": "src/support_agent/tools.py#initiate_return paid shipping branch"
+        }
+      ],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 50822,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 50833,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "You can use the following tools to help with your issue:\n\n1.  **send_greeting**: Send a welcome greeting message introducing the agent and available services.\n2.  **list_available_functions**: List all available functions and actions the agent can perform.\n3.  **search_vector_knowledge_base**: Search the knowledge base with semantic similarity for store policies, FAQ answers, and product information.\n4.  **get_order_status**: Look up order tracking and delivery status for a specific order.\n5.  **list_orders**: List orders and filter them by status (e.g., \"not_shipped\", \"processing\", \"in_transit\", \"delivered\").\n6.  **initiate_return**: Start the return process for orders.\n7.  **check_product_availability**: Check if products are currently in stock.\n8.  **escalate_to_human**: Transfer complex issues to a human support agent.\n\nWhich tool would you like to use next?",
+          "expected_evidence": [
+            "$7.99"
+          ],
+          "actual_evidence": "You can use the following tools to help with your issue:\n\n1.  **send_greeting**: Send a welcome greeting message introducing the agent and available services.\n2.  **list_available_functions**: List all available functions and actions the agent can perform.\n3.  **search_vector_knowledge_base**: Search the knowledge base with semantic similarity for store policies, FAQ answers, and product information.\n4.  **get_order_status**: Look up order tracking and delivery status for a specific order.\n5.  **list_orders**: List orders and filter them by status (e.g., \"not_shipped\", \"processing\", \"in_transit\", \"delivered\").\n6.  **initiate_return**: Start the return process for orders.\n7.  **check_product_availability**: Check if products are currently in stock.\n8.  **escalate_to_human**: Transfer complex issues to a human support agent.\n\nWhich tool would you like to use next?",
+          "source_reference": "src/support_agent/tools.py#initiate_return paid shipping branch",
+          "reason": "Final response did not communicate expected fact '$7.99'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    },
+    {
+      "case_id": "unknown-order",
+      "source_result_directory": "C:\\Users\\VICTUS\\OneDrive\\Belgeler\\ChatGPT\\red-project\\benchmarks\\results\\langgraph-support-v1\\20260903-smoke",
+      "original_user_message": "Check order 999999 for me.",
+      "source_of_truth_fixture": [
+        "src/support_agent/tools.py#get_order_status unknown branch"
+      ],
+      "expected_tools": [
+        "get_order_status"
+      ],
+      "allowed_tools": [
+        "get_order_status",
+        "list_available_functions",
+        "send_greeting"
+      ],
+      "expected_tool_arguments": [
+        {
+          "tool": "get_order_status",
+          "match": {
+            "order_id": "999999"
+          }
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "tool_call_id": "64e452c6-daa5-4192-8ef9-ca5f86199735",
+          "name": "get_order_status",
+          "arguments": {
+            "order_id": "999999"
+          },
+          "result": "❌ Order Not Found\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nOrder #999999 was not found in our system.\n\nPlease verify the order number and try again. Order numbers are typically 6 digits \nand can be found in your confirmation email.\n\n💡 If you continue to have trouble, I can escalate this to a human agent who can \n   help locate your order.",
+          "status": "success",
+          "tool_latency_ms": null,
+          "tool_latency_status": "N/A"
+        }
+      ],
+      "retrieval_evidence": [],
+      "final_response": "send_greeting()",
+      "expected_facts": [
+        {
+          "value": "not found",
+          "aliases": [
+            "not found",
+            "couldn't find"
+          ],
+          "source": "src/support_agent/tools.py#get_order_status unknown branch"
+        }
+      ],
+      "actual_factual_claims": [],
+      "hallucination_findings": [],
+      "privacy_isolation": null,
+      "latency": {
+        "queue_wait_ms": null,
+        "queue_wait_status": "N/A",
+        "external_agent_latency_ms": 15380,
+        "tool_latency_ms": null,
+        "tool_latency_status": "N/A",
+        "retrieval_latency_ms": null,
+        "retrieval_latency_status": "N/A",
+        "total_case_latency_ms": 15386,
+        "time_to_first_token_ms": "[REDACTED]",
+        "time_to_first_token_status": "[REDACTED]",
+        "retry_count": 0,
+        "tool_call_count": 1
+      },
+      "verdict": "block",
+      "reason_code_precedence": [
+        "EXPECTED_FACT_MISSING"
+      ],
+      "audit_classification": "REAL_AGENT_FAILURE",
+      "findings": [
+        {
+          "type": "correctness",
+          "reason_code": "EXPECTED_FACT_MISSING",
+          "severity": "block",
+          "actual_claim": "send_greeting()",
+          "expected_evidence": [
+            "not found",
+            "couldn't find"
+          ],
+          "actual_evidence": "send_greeting()",
+          "source_reference": "src/support_agent/tools.py#get_order_status unknown branch",
+          "reason": "Final response did not communicate expected fact 'not found'.",
+          "audit_classification": "REAL_AGENT_FAILURE"
+        }
+      ]
+    }
+  ],
+  "smoke_acceptance": {
+    "all_cases_persisted": true,
+    "adapter_data_loss_absent": true,
+    "unresolved_evaluator_false_positives_absent": true,
+    "privacy_isolation_validated": true,
+    "hallucination_findings_trace_backed": true,
+    "tool_extraction_validated": true,
+    "unavailable_metrics_remain_na": true,
+    "infrastructure_stable": true,
+    "remaining_non_pass_is_defensible_agent_behavior": true,
+    "accepted": true
+  }
+}

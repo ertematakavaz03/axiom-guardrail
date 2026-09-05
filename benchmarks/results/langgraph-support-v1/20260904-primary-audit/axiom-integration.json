@@ -1,0 +1,145 @@
+{
+  "project": {
+    "id": "4b9b364c-2fdb-479f-9231-608557e37c49",
+    "name": "External Benchmarks"
+  },
+  "agent": {
+    "id": "c605c104-ed13-4638-a8f0-ae4a9423d373",
+    "name": "LangGraph Customer Support Agent"
+  },
+  "agent_version": {
+    "id": "3053ab05-251b-46d2-8a7e-bac97ff5628e",
+    "version": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "model": "llama3.1:latest"
+  },
+  "suite": {
+    "id": "7b94ab3d-2382-48e0-98de-22bc5fde789f",
+    "name": "External LangGraph Support Benchmark v1"
+  },
+  "run": {
+    "id": "a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+    "case_count": 100
+  },
+  "dashboard_url": "http://localhost:3000/runs/a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+  "resource_counts": {
+    "projects": 1,
+    "agents": 1,
+    "agent_versions": 1,
+    "suites": 1,
+    "scenarios": 100,
+    "matching_runs": 1,
+    "case_results": 100,
+    "traces": 873,
+    "evaluations": 565
+  },
+  "expected_counts": {
+    "projects": 1,
+    "agents": 1,
+    "agent_versions": 1,
+    "suites": 1,
+    "scenarios": 100,
+    "matching_runs": 1,
+    "case_results": 100,
+    "traces": 873,
+    "evaluations": 565
+  },
+  "resource_counts_valid": true,
+  "schema_version": 1,
+  "import_attempts": [
+    {
+      "project": {
+        "id": "4b9b364c-2fdb-479f-9231-608557e37c49",
+        "name": "External Benchmarks"
+      },
+      "agent": {
+        "id": "c605c104-ed13-4638-a8f0-ae4a9423d373",
+        "name": "LangGraph Customer Support Agent"
+      },
+      "agent_version": {
+        "id": "3053ab05-251b-46d2-8a7e-bac97ff5628e",
+        "version": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+        "model": "llama3.1:latest"
+      },
+      "suite": {
+        "id": "7b94ab3d-2382-48e0-98de-22bc5fde789f",
+        "name": "External LangGraph Support Benchmark v1"
+      },
+      "run": {
+        "id": "a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+        "case_count": 100
+      },
+      "dashboard_url": "http://localhost:3000/runs/a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+      "resource_counts": {
+        "projects": 1,
+        "agents": 1,
+        "agent_versions": 1,
+        "suites": 1,
+        "scenarios": 100,
+        "matching_runs": 1,
+        "case_results": 100,
+        "traces": 873,
+        "evaluations": 565
+      },
+      "expected_counts": {
+        "projects": 1,
+        "agents": 1,
+        "agent_versions": 1,
+        "suites": 1,
+        "scenarios": 100,
+        "matching_runs": 1,
+        "case_results": 100,
+        "traces": 873,
+        "evaluations": 565
+      },
+      "resource_counts_valid": true
+    },
+    {
+      "project": {
+        "id": "4b9b364c-2fdb-479f-9231-608557e37c49",
+        "name": "External Benchmarks"
+      },
+      "agent": {
+        "id": "c605c104-ed13-4638-a8f0-ae4a9423d373",
+        "name": "LangGraph Customer Support Agent"
+      },
+      "agent_version": {
+        "id": "3053ab05-251b-46d2-8a7e-bac97ff5628e",
+        "version": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+        "model": "llama3.1:latest"
+      },
+      "suite": {
+        "id": "7b94ab3d-2382-48e0-98de-22bc5fde789f",
+        "name": "External LangGraph Support Benchmark v1"
+      },
+      "run": {
+        "id": "a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+        "case_count": 100
+      },
+      "dashboard_url": "http://localhost:3000/runs/a19a9450-3a4e-4b20-b78f-21eaaf3ffc9a",
+      "resource_counts": {
+        "projects": 1,
+        "agents": 1,
+        "agent_versions": 1,
+        "suites": 1,
+        "scenarios": 100,
+        "matching_runs": 1,
+        "case_results": 100,
+        "traces": 873,
+        "evaluations": 565
+      },
+      "expected_counts": {
+        "projects": 1,
+        "agents": 1,
+        "agent_versions": 1,
+        "suites": 1,
+        "scenarios": 100,
+        "matching_runs": 1,
+        "case_results": 100,
+        "traces": 873,
+        "evaluations": 565
+      },
+      "resource_counts_valid": true
+    }
+  ],
+  "idempotency_verified": true
+}

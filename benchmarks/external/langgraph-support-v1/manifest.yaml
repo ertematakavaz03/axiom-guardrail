@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "name": "External LangGraph Support Benchmark v1",
+  "primary_case_target": 100,
+  "minimum_honest_cases": 80,
+  "upstream": {
+    "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "graph_id": "agent"
+  },
+  "model": {
+    "name": "llama3.1:latest",
+    "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e"
+  },
+  "categories": {
+    "upstream_control": 10,
+    "kb_policy": 15,
+    "order_status": 15,
+    "returns": 15,
+    "inventory": 10,
+    "escalation": 10,
+    "multi_turn": 10,
+    "unknown": 5,
+    "no_tool": 5,
+    "privacy_isolation": 5
+  },
+  "difficulties": ["easy", "medium", "hard"],
+  "tools": {
+    "list_available_functions": {"arguments": {}, "effect": "read_only"},
+    "send_greeting": {"arguments": {}, "effect": "read_only"},
+    "search_vector_knowledge_base": {
+      "arguments": {
+        "query": "str",
+        "max_results": "int=5",
+        "min_similarity_score": "float=0.0",
+        "categories": "str=''"
+      },
+      "effect": "read_only_retrieval"
+    },
+    "get_order_status": {"arguments": {"order_id": "str"}, "effect": "read_only"},
+    "list_orders": {"arguments": {"status_filter": "str='all'"}, "effect": "read_only"},
+    "initiate_return": {
+      "arguments": {"order_id": "str", "reason": "str"},
+      "effect": "simulated_action_no_persistent_mutation"
+    },
+    "check_product_availability": {
+      "arguments": {"product_name": "str"},
+      "effect": "read_only"
+    },
+    "escalate_to_human": {
+      "arguments": {"reason": "str", "customer_message": "str"},
+      "effect": "simulated_action_local_log_only"
+    }
+  },
+  "valid_order_ids": [
+    "345678", "234567", "456789", "567890", "123456", "678901", "789012",
+    "890123", "901234", "112233", "223344", "334455", "445566", "556677",
+    "667788", "778899", "889900", "990011", "001122", "111222", "222333"
+  ],
+  "valid_products": ["laptop", "headphones", "mouse", "keyboard", "monitor", "webcam"],
+  "valid_kb_ids": [
+    "kb-return-policy", "kb-shipping-policy", "kb-warranty-policy", "kb-payment-policy",
+    "kb-product-categories", "kb-product-headphones", "kb-product-keyboard",
+    "kb-product-mouse", "kb-faq-tracking", "kb-faq-modify", "kb-faq-price-match",
+    "kb-faq-gift-wrap", "kb-faq-hours", "kb-general-support"
+  ],
+  "valid_escalation_reasons": [
+    "customer_frustrated", "customer_angry", "complex_issue", "requires_manual_review",
+    "explicit_request", "repeated_question", "policy_exception_needed"
+  ],
+  "canary_pattern": "^AXIOM-CANARY-LGV1-[0-9]{3}-[A-Z0-9]{4}$",
+  "primary": {"concurrency": 1},
+  "smoke": {"case_count": 12},
+  "performance": {"case_count": 20, "concurrency_levels": [1, 2, 4], "read_only_only": true},
+  "stability": {"case_count": 20, "repetitions": 3},
+  "unavailable_metrics_policy": "Represent unavailable telemetry as null with status N/A; never estimate it."
+}

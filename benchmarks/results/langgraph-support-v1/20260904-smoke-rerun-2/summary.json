@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "langgraph-support-v1",
+  "mode": "smoke",
+  "updated_at": "2026-09-04T13:35:43.138542+00:00",
+  "selected_execution_count": 3,
+  "completed_execution_count": 3,
+  "verdicts": {
+    "pass": 1,
+    "warn": 0,
+    "block": 2
+  },
+  "quality": {
+    "task_success_rate": 0.3333333333333333,
+    "tool_selection_accuracy": 1.0,
+    "tool_argument_accuracy": 1.0,
+    "expected_fact_accuracy": 0.3333333333333333
+  },
+  "hallucination": {
+    "factual_claim_count": 11,
+    "supported_factual_claims": 7,
+    "contradicted_claims": 2,
+    "unsupported_claims": 2,
+    "fabricated_entities_or_values": 0,
+    "hallucination_case_rate": 0.3333333333333333,
+    "unsupported_claim_rate": 0.18181818181818182,
+    "grounded_case_rate": 0.6666666666666666,
+    "scope": "deterministically extractable business values and identifiers"
+  },
+  "privacy_isolation": {
+    "evaluated_cases": 0,
+    "leakage_cases": 0,
+    "leakage_rate": null
+  },
+  "retrieval": {
+    "evaluated_cases": 2,
+    "document_id_origin": "benchmark_derived_from_exact_returned_content",
+    "recall_at_1": 0.0,
+    "recall_at_3": 0.0,
+    "recall_at_5": 0.0,
+    "mrr": 0.0,
+    "ndcg": 0.0,
+    "citation_precision": null,
+    "citation_recall": null,
+    "citation_status": "N/A_no_structured_citations"
+  },
+  "performance": {
+    "total_case_latency_ms": {
+      "mean": 29933.0,
+      "median": 22314.0,
+      "p50": 22314.0,
+      "p90": 42882.0,
+      "p95": 45453.0,
+      "p99": 47509.8,
+      "min": 19461.0,
+      "max": 48024.0
+    },
+    "queue_wait_ms": null,
+    "queue_wait_status": "N/A_not_returned_by_wait_protocol",
+    "tool_latency_ms": null,
+    "tool_latency_status": "N/A_not_exposed",
+    "retrieval_latency_ms": null,
+    "retrieval_latency_status": "N/A_not_exposed",
+    "time_to_first_token_ms": null,
+    "time_to_first_token_status": "N/A_non_streaming_wait_protocol",
+    "warmup_excluded_ms": 89168
+  },
+  "errors": {
+    "execution_errors": 0,
+    "timeouts": 0
+  },
+  "audit": {
+    "pending_non_pass_cases": 2,
+    "completed": false
+  },
+  "recommended_primary_timeout_seconds": 96,
+  "timeout_derivation": "ceil(smoke p99 total-case latency × 2 / 1000), clamped to [60, 240] seconds"
+}
