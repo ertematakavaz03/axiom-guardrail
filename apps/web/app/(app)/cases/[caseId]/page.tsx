@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import type { CaseResult, Evaluation, Trace } from "@/lib/types";
 import { Breadcrumbs, Loading, PageHeader } from "@/components/ui";
 import { StatusBadge } from "@/components/status-badge";
+import { SecurityCaseEvidence } from "@/components/security-evidence";
 
 interface TraceBundle {
   case: CaseResult;
@@ -85,6 +86,7 @@ export default function CaseTracePage() {
           <StatusBadge value={bundle.case.verdict ?? bundle.case.status} />
         }
       />
+      <SecurityCaseEvidence evaluations={bundle.evaluations} traces={bundle.traces} />
       {benchmarkExpectation && (
         <section className="panel spaced">
           <div className="panel-title">

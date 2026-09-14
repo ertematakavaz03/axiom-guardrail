@@ -48,7 +48,9 @@ class AgentResponse(ORMModel):
 
 class AgentVersionCreate(BaseModel):
     version: str = Field(min_length=1, max_length=100)
-    adapter_type: Literal["generic_http", "demo_support_agent", "demo_rag_agent"]
+    adapter_type: Literal[
+        "generic_http", "demo_support_agent", "demo_rag_agent", "demo_security_agent"
+    ]
     endpoint_url: AnyHttpUrl | None = None
     model_provider: str = Field(default="demo", max_length=100)
     model_name: str = Field(default="deterministic-support-v1", max_length=200)
@@ -122,6 +124,15 @@ class ScenarioCreate(BaseModel):
     timeout_seconds: int = Field(default=30, ge=1, le=300)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
+    @field_validator("metadata")
+    @classmethod
+    def validate_security_metadata(cls, value: dict[str, Any]) -> dict[str, Any]:
+        if "security" in value:
+            from services.security.models import SecurityScenario
+
+            SecurityScenario.model_validate(value["security"])
+        return value
+
     @field_validator("expected_tools", "forbidden_tools")
     @classmethod
     def tools_unique(cls, value: list[str]) -> list[str]:
@@ -139,6 +150,13 @@ class ScenarioUpdate(BaseModel):
     severity: Severity | None = None
     timeout_seconds: int | None = Field(default=None, ge=1, le=300)
     metadata: dict[str, Any] | None = None
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_security_metadata(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
+        if value is not None:
+            ScenarioCreate.validate_security_metadata(value)
+        return value
 
 
 class ScenarioResponse(ORMModel):
@@ -165,6 +183,8 @@ class RunCreate(BaseModel):
     corpus_id: uuid.UUID | None = None
     rag_config_id: uuid.UUID | None = None
     budget: dict[str, int] | None = None
+    security_policy_id: uuid.UUID | None = None
+    security_mode: Literal["observational", "preventive"] = "observational"
 
 
 class RunResponse(ORMModel):

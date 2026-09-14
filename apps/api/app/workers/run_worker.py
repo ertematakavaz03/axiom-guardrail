@@ -41,7 +41,17 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
         run.status = RunStatus.RUNNING
         run.started_at = datetime.now(UTC)
         case_work: list[tuple[uuid.UUID, dict[str, Any]]] = []
+        existing_cases = (
+            await session.scalars(select(CaseResult).where(CaseResult.run_id == run.id))
+        ).all()
+        existing_by_scenario = {str(case.scenario_id): case for case in existing_cases}
         for scenario in run.snapshot["scenarios"]:
+            existing = existing_by_scenario.get(scenario["id"])
+            if existing is not None:
+                if existing.status in {CaseStatus.COMPLETED, CaseStatus.FAILED}:
+                    continue
+                case_work.append((existing.id, scenario))
+                continue
             case = CaseResult(run_id=run.id, scenario_id=uuid.UUID(scenario["id"]))
             session.add(case)
             await session.flush()
@@ -92,6 +102,7 @@ async def _execute_case(
             suite_config=snapshot["suite"],
             budget=snapshot["budget"],
             rag_config=snapshot.get("rag"),
+            security_config=snapshot.get("security"),
         )
         async with SessionLocal() as session:
             case = await session.get(CaseResult, case_id, with_for_update=True)
@@ -106,7 +117,9 @@ async def _execute_case(
             case.input_tokens = result.input_tokens
             case.output_tokens = result.output_tokens
             case.total_tokens = result.total_tokens
-            case.estimated_cost = Decimal(str(result.estimated_cost))
+            case.estimated_cost = (
+                Decimal(str(result.estimated_cost)) if result.estimated_cost is not None else None
+            )
             case.finished_at = datetime.now(UTC)
             session.add_all(
                 [
@@ -221,8 +234,54 @@ async def _finalize_run(run_id: uuid.UUID) -> None:
                 }
             )
         metrics, score, verdict = aggregate_run(summaries)
+        if "security" in run.snapshot:
+            from services.security.metrics import security_metrics
+            from services.security.models import SecurityEvaluation
+
+            security_rows = (
+                await session.scalars(
+                    select(EvalResult)
+                    .join(CaseResult, CaseResult.id == EvalResult.case_result_id)
+                    .where(CaseResult.run_id == run_id, EvalResult.metric == "security_summary")
+                )
+            ).all()
+            metrics["security"] = security_metrics(
+                [
+                    SecurityEvaluation.model_validate(row.evidence["evaluation"])
+                    for row in security_rows
+                ]
+            )
+            metrics["security"].update(
+                total_cases=len(cases),
+                evaluated_cases=len(security_rows),
+                execution_failures=sum(case.status == CaseStatus.FAILED for case in cases),
+            )
+            # Legacy quality metrics are not evaluated by security suites.
+            for metric in (
+                "task_success",
+                "tool_selection_accuracy",
+                "tool_argument_accuracy",
+                "quality_score",
+                "tool_correctness_score",
+                "security_score",
+                "efficiency_score",
+            ):
+                metrics[metric] = None
+            metrics["total_tokens"] = (
+                sum(case.total_tokens or 0 for case in cases)
+                if cases and all(case.total_tokens is not None for case in cases)
+                else None
+            )
+            metrics["average_estimated_cost"] = (
+                sum(float(case.estimated_cost or 0) for case in cases) / len(cases)
+                if cases and all(case.estimated_cost is not None for case in cases)
+                else None
+            )
+            metrics["security_violations"] = sum(
+                bool(row.evidence["evaluation"]["findings"]) for row in security_rows
+            )
         run.metrics = metrics
-        run.overall_score = Decimal(str(score))
+        run.overall_score = None if "security" in run.snapshot else Decimal(str(score))
         run.verdict = Verdict(verdict)
         run.status = RunStatus.COMPLETED
         run.finished_at = datetime.now(UTC)

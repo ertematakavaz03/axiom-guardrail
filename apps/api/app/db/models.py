@@ -161,6 +161,34 @@ class Agent(Base, TimestampMixin):
     description: Mapped[str] = mapped_column(Text, default="")
 
 
+class SecurityPolicyRecord(Base):
+    __tablename__ = "security_policies"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    agent_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agents.id", ondelete="CASCADE"), nullable=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    policy: Mapped[dict[str, Any]] = mapped_column(JSONType)
+    policy_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MCPRegistration(Base):
+    __tablename__ = "mcp_registrations"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    server: Mapped[str] = mapped_column(String(200))
+    inventory: Mapped[dict[str, Any]] = mapped_column(JSONType)
+    inventory_hash: Mapped[str] = mapped_column(String(64))
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class AgentVersion(Base):
     __tablename__ = "agent_versions"
     __table_args__ = (UniqueConstraint("agent_id", "version"),)

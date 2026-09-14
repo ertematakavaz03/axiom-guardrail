@@ -1,0 +1,7 @@
+{
+  "status": "excluded_before_execution",
+  "stage": "API startup before account registration",
+  "exception_type": "RemoteProtocolError",
+  "completed_security_executions": 0,
+  "correction": "Wait for API readiness with bounded GET retries before any POST. Do not replay state-changing requests. Preserve this attempt and use a new output directory."
+}

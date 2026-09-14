@@ -3,3 +3,6 @@ benchmarks/results/langgraph-support-v1/20260904-primary/cases.jsonl -text
 benchmarks/results/langgraph-support-v1/20260904-primary-audit/audited-cases.jsonl -text
 benchmarks/results/langgraph-support-v1/20260904-primary-audit/summary-audited.json -text
 benchmarks/results/langgraph-support-v1/20260904-primary-audit/audit.json -text
+
+# Phase 3 manifests hash raw bytes, including line endings.
+benchmarks/results/security-lab-v1/** -text

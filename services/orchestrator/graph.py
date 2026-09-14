@@ -44,7 +44,7 @@ class OrchestrationResult(BaseModel):
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
-    estimated_cost: float = 0.0
+    estimated_cost: float | None = 0.0
 
 
 class CaseState(TypedDict, total=False):
@@ -120,7 +120,19 @@ class CaseOrchestrator:
         suite_config: dict[str, Any],
         budget: dict[str, int],
         rag_config: dict[str, Any] | None = None,
+        security_config: dict[str, Any] | None = None,
     ) -> OrchestrationResult:
+        if security_config is not None:
+            from services.security.integration import run_security_case
+
+            return await run_security_case(
+                settings=self.settings,
+                run_id=run_id,
+                case_id=case_id,
+                scenario=scenario,
+                agent_config=agent_config,
+                security_config=security_config,
+            )
         state: CaseState = {
             "run_id": run_id,
             "case_id": case_id,

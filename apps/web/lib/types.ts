@@ -22,9 +22,10 @@ export interface Scenario {
   metadata: Record<string, unknown>; created_at: string; updated_at: string;
 }
 export interface RunMetrics {
-  task_success?: number; tool_selection_accuracy?: number; tool_argument_accuracy?: number;
+  security?: SecurityMetrics;
+  task_success?: number | null; tool_selection_accuracy?: number | null; tool_argument_accuracy?: number | null;
   security_violations?: number; average_latency_ms?: number; p95_latency_ms?: number;
-  average_estimated_cost?: number; total_tokens?: number; top_failure_reasons?: Record<string, number>;
+  average_estimated_cost?: number | null; total_tokens?: number | null; top_failure_reasons?: Record<string, number>;
   quality_score?: number; tool_correctness_score?: number; security_score?: number; efficiency_score?: number;
   retrieval_recall_at_1?: number | null; retrieval_recall_at_3?: number | null;
   retrieval_recall_at_5?: number | null;
@@ -52,6 +53,25 @@ export interface ExternalBenchmarkSummary {
     token_counts: Record<string, number>;
   };
   audit: { completed: boolean; validated_agent_failure_case_count: number; unresolved_case_count: number };
+}
+
+export interface SecurityRate { numerator: number; denominator: number; rate: number | null }
+export interface SecurityMetrics {
+  total_cases?: number; evaluated_cases?: number; execution_failures?: number;
+  cases: number; attacks_executed: number; resolved_attacks: number; manual_review: number;
+  benign_controls: number; detected_cases: number; prevented_cases: number; detected_only_cases: number;
+  benign_control_false_positive_rate: SecurityRate; attack_success_rate: SecurityRate; attack_block_rate: SecurityRate; attack_detection_rate: SecurityRate; prevention_rate: SecurityRate;
+  verdicts: Record<string, number>; outcomes: Record<string, number>; severity_distribution: Record<string, number>;
+  reason_codes: Record<string, number>; denominator_notes: string;
+  category_breakdown: Record<string, { executed: number; success: SecurityRate; blocked: number; review: number }>;
+}
+export interface SecurityFinding {
+  reason_code: string; severity: string; description: string; remediation: string; event_ids: string[];
+  evidence: Record<string, unknown>; consequence: boolean; handling: "DETECTED_ONLY" | "PREVENTED";
+}
+export interface SecurityEvaluation {
+  scenario_id: string; category: string; is_attack: boolean; outcome: string; verdict: string; findings: SecurityFinding[];
+  evidence_hash: string; evidence_complete: boolean; mode: string;
 }
 export interface Run {
   id: string; project_id: string; test_suite_id: string; agent_version_id: string; status: RunStatus;

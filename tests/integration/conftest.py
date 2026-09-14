@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import uuid
 
 import pytest
 import pytest_asyncio
@@ -8,6 +8,7 @@ from arq import create_pool
 from arq.connections import RedisSettings
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import inspect, text
+from sqlalchemy.engine import make_url
 
 from apps.api.app.config import get_settings
 from apps.api.app.db.session import engine
@@ -34,13 +35,15 @@ EXPECTED_TABLES = {
     "document_chunks",
     "rag_configs",
     "gold_evidence",
+    "security_policies",
+    "mcp_registrations",
 }
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def isolated_database() -> None:
     database_url = get_settings().database_url
-    if "_test" not in database_url and os.getenv("AGENTARENA_ALLOW_TEST_DATABASE") != "1":
+    if not (make_url(database_url).database or "").endswith("_test"):
         pytest.skip("Integration tests require a dedicated *_test database")
     try:
         async with engine.begin() as connection:
@@ -49,7 +52,7 @@ async def isolated_database() -> None:
                 lambda sync_connection: set(inspect(sync_connection).get_table_names())
             )
             if not EXPECTED_TABLES.issubset(table_names):
-                pytest.fail("Phase 2 Alembic migrations have not been applied to the test database")
+                pytest.fail("All Alembic migrations must be applied to the test database")
             await connection.execute(
                 text(f"TRUNCATE TABLE {', '.join(sorted(EXPECTED_TABLES))} CASCADE")
             )
@@ -66,7 +69,12 @@ async def isolated_database() -> None:
 async def client() -> AsyncClient:
     settings = get_settings()
     try:
-        redis = await create_pool(RedisSettings.from_dsn(settings.redis_url))
+        # Direct-execution tests leave queued jobs behind. Give each test its own
+        # queue so a burst worker cannot consume another test's expired jobs.
+        redis = await create_pool(
+            RedisSettings.from_dsn(settings.redis_url),
+            default_queue_name=f"arq:test:{uuid.uuid4().hex}",
+        )
         await redis.ping()
     except OSError as exc:
         pytest.skip(f"Redis is unavailable: {exc}")
