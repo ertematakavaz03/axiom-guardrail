@@ -15,10 +15,12 @@ from apps.api.app.db.models import (
     Agent,
     AgentVersion,
     GoldEvidence,
+    MCPRegistration,
     RagConfig,
     Run,
     RunStatus,
     Scenario,
+    SecurityPolicyRecord,
     TestSuite,
     User,
 )
@@ -115,6 +117,59 @@ class RunService:
             rag_snapshot,
             gold_by_scenario,
         )
+        security_scenarios = [s for s in scenarios if "security" in s.scenario_metadata]
+        if security_scenarios:
+            from services.security.models import SecurityPolicy, SecurityScenario
+
+            if len(security_scenarios) != len(scenarios) or payload.security_policy_id is None:
+                raise ConflictError(
+                    "Security suites require an explicit security policy and cannot mix scenario kinds"
+                )
+            policy_record = await self.session.get(SecurityPolicyRecord, payload.security_policy_id)
+            if (
+                policy_record is None
+                or policy_record.project_id != project.id
+                or policy_record.agent_id not in {None, agent.id}
+            ):
+                raise ConflictError("Security policy must belong to this project and agent")
+            if (
+                payload.security_mode == "preventive"
+                and version.adapter_type != "demo_security_agent"
+            ):
+                raise ConflictError(
+                    "External adapters are observational; preventive mode requires a host-owned execution gateway"
+                )
+            for security_scenario in security_scenarios:
+                SecurityScenario.model_validate(security_scenario.scenario_metadata["security"])
+            SecurityPolicy.model_validate(policy_record.policy)
+            registrations = (
+                await self.session.scalars(
+                    select(MCPRegistration)
+                    .where(
+                        MCPRegistration.project_id == project.id, MCPRegistration.approved.is_(True)
+                    )
+                    .order_by(MCPRegistration.created_at)
+                )
+            ).all()
+            snapshot["security"] = {
+                "policy_id": str(policy_record.id),
+                "policy": deepcopy(policy_record.policy),
+                "policy_hash": policy_record.policy_hash,
+                "mode": payload.security_mode,
+                "principal": {
+                    "tenant_id": str(project.organization_id),
+                    "project_id": str(project.id),
+                    "user_id": str(self.user.id),
+                    "run_id": "pending",
+                    "permissions": [],
+                },
+                "mcp_approved": [deepcopy(item.inventory) for item in registrations],
+                "evaluator_version": "security-deterministic-1",
+            }
+        elif (
+            payload.security_policy_id is not None or version.adapter_type == "demo_security_agent"
+        ):
+            raise ConflictError("Security policies and demo targets require security scenarios")
         run = Run(
             project_id=project.id,
             test_suite_id=suite.id,

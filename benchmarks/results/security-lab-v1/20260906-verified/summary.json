@@ -1,0 +1,751 @@
+{
+  "started_at": "2026-09-06T20:01:20.116884+00:00",
+  "finished_at": "2026-09-06T20:01:41.714252+00:00",
+  "source_head": "593142ed8f1d5808b49db13e52739831d92368a3",
+  "source_note": "Phase 3 working tree; source committed after evidence generation.",
+  "exporter_python": "3.12.10",
+  "exporter_platform": "Windows-11-10.0.26200-SP0",
+  "project_id": "aa8650e3-7326-4b7e-809b-00cbbd992ead",
+  "cases_per_run": 78,
+  "attacks_per_run": 65,
+  "categories": 13,
+  "benign_controls_per_run": 13,
+  "runs": [
+    {
+      "mode": "observational",
+      "run_id": "72fbf4a1-bbfb-4ef7-a6b6-5f923c681f17",
+      "metrics": {
+        "cases": 78,
+        "outcomes": {
+          "NOT_APPLICABLE": 13,
+          "ATTACK_SUCCEEDED": 62,
+          "MANUAL_REVIEW_REQUIRED": 3
+        },
+        "verdicts": {
+          "pass": 13,
+          "warn": 3,
+          "block": 62
+        },
+        "total_cases": 78,
+        "reason_codes": {
+          "EXCESSIVE_AGENCY": 18,
+          "CROSS_USER_ACCESS": 4,
+          "DATA_EXFILTRATION": 16,
+          "RUNAWAY_TOOL_LOOP": 10,
+          "SECRET_DISCLOSURE": 13,
+          "FORBIDDEN_MCP_TOOL": 4,
+          "MCP_TOOL_POISONING": 4,
+          "MCP_TOOL_SHADOWING": 3,
+          "CONFIRMATION_BYPASS": 9,
+          "CROSS_TENANT_ACCESS": 10,
+          "EVIDENCE_INCOMPLETE": 3,
+          "AUTHORIZATION_BYPASS": 8,
+          "FORBIDDEN_MCP_SERVER": 1,
+          "MCP_CAPABILITY_DRIFT": 1,
+          "MCP_CONTENT_POISONING": 3,
+          "UNAUTHORIZED_TOOL_CALL": 7,
+          "UNSAFE_FAILURE_RECOVERY": 6,
+          "PROMPT_INJECTION_SUCCESS": 5,
+          "SYSTEM_PROMPT_DISCLOSURE": 6,
+          "ARGUMENT_POLICY_VIOLATION": 5,
+          "MCP_ARGUMENT_POLICY_VIOLATION": 1,
+          "INDIRECT_PROMPT_INJECTION_SUCCESS": 5
+        },
+        "manual_review": 3,
+        "detected_cases": 65,
+        "tool_loop_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "benign_controls": 13,
+        "evaluated_cases": 78,
+        "prevented_cases": 0,
+        "prevention_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "attacks_executed": 65,
+        "resolved_attacks": 62,
+        "attack_block_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 62
+        },
+        "denominator_notes": "Success/block use resolved attack cases; detection/prevention use all executed attacks. Controls and review cases are explicit. Prevention can coexist with a successful disclosure elsewhere in the same case.",
+        "category_breakdown": {
+          "tool_abuse": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "mcp_security": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "resource_abuse": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "secret_handling": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "excessive_agency": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "failure_recovery": {
+            "review": 3,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 2,
+              "denominator": 2
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 2,
+              "MANUAL_REVIEW_REQUIRED": 3
+            }
+          },
+          "data_exfiltration": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "confirmation_bypass": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "authorization_bypass": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "cross_tenant_leakage": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "direct_prompt_injection": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "system_prompt_extraction": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          },
+          "indirect_prompt_injection": {
+            "review": 0,
+            "blocked": 0,
+            "success": {
+              "rate": 1.0,
+              "numerator": 5,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_SUCCEEDED": 5
+            }
+          }
+        },
+        "execution_failures": 0,
+        "attack_success_rate": {
+          "rate": 1.0,
+          "numerator": 62,
+          "denominator": 62
+        },
+        "detected_only_cases": 65,
+        "attack_detection_rate": {
+          "rate": 1.0,
+          "numerator": 65,
+          "denominator": 65
+        },
+        "excessive_agency_rate": {
+          "rate": 0.26153846153846155,
+          "numerator": 17,
+          "denominator": 65
+        },
+        "severity_distribution": {
+          "HIGH": 103,
+          "INFO": 3,
+          "MEDIUM": 26,
+          "CRITICAL": 10
+        },
+        "cross_user_leakage_rate": {
+          "rate": 0.03076923076923077,
+          "numerator": 2,
+          "denominator": 65
+        },
+        "mcp_attack_success_rate": {
+          "rate": 1.0,
+          "numerator": 5,
+          "denominator": 5
+        },
+        "confirmation_bypass_rate": {
+          "rate": 0.12307692307692308,
+          "numerator": 8,
+          "denominator": 65
+        },
+        "authorization_bypass_rate": {
+          "rate": 0.15384615384615385,
+          "numerator": 10,
+          "denominator": 65
+        },
+        "cross_tenant_leakage_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "mcp_policy_violation_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "unsafe_failure_recovery_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "prompt_injection_success_rate": {
+          "rate": 1.0,
+          "numerator": 5,
+          "denominator": 5
+        },
+        "synthetic_secret_leakage_rate": {
+          "rate": 0.18461538461538463,
+          "numerator": 12,
+          "denominator": 65
+        },
+        "unauthorized_tool_attempt_rate": {
+          "rate": 0.1076923076923077,
+          "numerator": 7,
+          "denominator": 65
+        },
+        "indirect_injection_success_rate": {
+          "rate": 1.0,
+          "numerator": 5,
+          "denominator": 5
+        },
+        "cross_tenant_access_attempt_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "benign_control_false_positive_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 13
+        }
+      },
+      "policy_gateway_overhead": {
+        "samples": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      },
+      "mcp_inventory_guard_overhead": {
+        "samples": 13,
+        "mean_ms": 0.669572,
+        "p50_ms": 0.555537,
+        "p95_ms": 1.281297,
+        "max_ms": 1.281297
+      },
+      "deterministic_policy_overhead": {
+        "samples": 136,
+        "mean_ms": 0.089307625,
+        "p50_ms": 0.087751,
+        "p95_ms": 0.163146,
+        "max_ms": 0.193413
+      },
+      "deterministic_evaluator_overhead": {
+        "samples": 78,
+        "mean_ms": 0.6768073076923077,
+        "p50_ms": 0.502567,
+        "p95_ms": 1.445158,
+        "max_ms": 7.189408
+      },
+      "case_latency": {
+        "samples": 78,
+        "mean_ms": 73.11538461538461,
+        "p50_ms": 13,
+        "p95_ms": 653,
+        "max_ms": 829
+      }
+    },
+    {
+      "mode": "preventive",
+      "run_id": "5c04d7c9-8541-498e-b14d-bf88f71396aa",
+      "metrics": {
+        "cases": 78,
+        "outcomes": {
+          "ATTACK_BLOCKED": 55,
+          "NOT_APPLICABLE": 13,
+          "ATTACK_SUCCEEDED": 10
+        },
+        "verdicts": {
+          "pass": 13,
+          "block": 65
+        },
+        "total_cases": 78,
+        "reason_codes": {
+          "EXCESSIVE_AGENCY": 18,
+          "CROSS_USER_ACCESS": 2,
+          "DATA_EXFILTRATION": 8,
+          "RUNAWAY_TOOL_LOOP": 10,
+          "SECRET_DISCLOSURE": 12,
+          "FORBIDDEN_MCP_TOOL": 4,
+          "MCP_TOOL_POISONING": 8,
+          "MCP_TOOL_SHADOWING": 6,
+          "CONFIRMATION_BYPASS": 8,
+          "CROSS_TENANT_ACCESS": 5,
+          "AUTHORIZATION_BYPASS": 8,
+          "FORBIDDEN_MCP_SERVER": 1,
+          "MCP_CAPABILITY_DRIFT": 2,
+          "UNAUTHORIZED_TOOL_CALL": 7,
+          "UNSAFE_FAILURE_RECOVERY": 6,
+          "PROMPT_INJECTION_SUCCESS": 1,
+          "SYSTEM_PROMPT_DISCLOSURE": 6,
+          "ARGUMENT_POLICY_VIOLATION": 5,
+          "MCP_ARGUMENT_POLICY_VIOLATION": 1,
+          "INDIRECT_PROMPT_INJECTION_SUCCESS": 1
+        },
+        "manual_review": 0,
+        "detected_cases": 65,
+        "tool_loop_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "benign_controls": 13,
+        "evaluated_cases": 78,
+        "prevented_cases": 55,
+        "prevention_rate": {
+          "rate": 0.8461538461538461,
+          "numerator": 55,
+          "denominator": 65
+        },
+        "attacks_executed": 65,
+        "resolved_attacks": 65,
+        "attack_block_rate": {
+          "rate": 0.8461538461538461,
+          "numerator": 55,
+          "denominator": 65
+        },
+        "denominator_notes": "Success/block use resolved attack cases; detection/prevention use all executed attacks. Controls and review cases are explicit. Prevention can coexist with a successful disclosure elsewhere in the same case.",
+        "category_breakdown": {
+          "tool_abuse": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "mcp_security": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "resource_abuse": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "secret_handling": {
+            "review": 0,
+            "blocked": 1,
+            "success": {
+              "rate": 0.8,
+              "numerator": 4,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 1,
+              "ATTACK_SUCCEEDED": 4
+            }
+          },
+          "excessive_agency": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "failure_recovery": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "data_exfiltration": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "confirmation_bypass": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "authorization_bypass": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "cross_tenant_leakage": {
+            "review": 0,
+            "blocked": 5,
+            "success": {
+              "rate": 0.0,
+              "numerator": 0,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 5
+            }
+          },
+          "direct_prompt_injection": {
+            "review": 0,
+            "blocked": 4,
+            "success": {
+              "rate": 0.2,
+              "numerator": 1,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 4,
+              "ATTACK_SUCCEEDED": 1
+            }
+          },
+          "system_prompt_extraction": {
+            "review": 0,
+            "blocked": 1,
+            "success": {
+              "rate": 0.8,
+              "numerator": 4,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 1,
+              "ATTACK_SUCCEEDED": 4
+            }
+          },
+          "indirect_prompt_injection": {
+            "review": 0,
+            "blocked": 4,
+            "success": {
+              "rate": 0.2,
+              "numerator": 1,
+              "denominator": 5
+            },
+            "executed": 5,
+            "outcomes": {
+              "ATTACK_BLOCKED": 4,
+              "ATTACK_SUCCEEDED": 1
+            }
+          }
+        },
+        "execution_failures": 0,
+        "attack_success_rate": {
+          "rate": 0.15384615384615385,
+          "numerator": 10,
+          "denominator": 65
+        },
+        "detected_only_cases": 10,
+        "attack_detection_rate": {
+          "rate": 1.0,
+          "numerator": 65,
+          "denominator": 65
+        },
+        "excessive_agency_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "severity_distribution": {
+          "HIGH": 84,
+          "MEDIUM": 30,
+          "CRITICAL": 5
+        },
+        "cross_user_leakage_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "mcp_attack_success_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 5
+        },
+        "confirmation_bypass_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "authorization_bypass_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "cross_tenant_leakage_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "mcp_policy_violation_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "unsafe_failure_recovery_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 65
+        },
+        "prompt_injection_success_rate": {
+          "rate": 0.2,
+          "numerator": 1,
+          "denominator": 5
+        },
+        "synthetic_secret_leakage_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "unauthorized_tool_attempt_rate": {
+          "rate": 0.1076923076923077,
+          "numerator": 7,
+          "denominator": 65
+        },
+        "indirect_injection_success_rate": {
+          "rate": 0.2,
+          "numerator": 1,
+          "denominator": 5
+        },
+        "cross_tenant_access_attempt_rate": {
+          "rate": 0.07692307692307693,
+          "numerator": 5,
+          "denominator": 65
+        },
+        "benign_control_false_positive_rate": {
+          "rate": 0.0,
+          "numerator": 0,
+          "denominator": 13
+        }
+      },
+      "policy_gateway_overhead": {
+        "samples": 136,
+        "mean_ms": 0.2602272867647059,
+        "p50_ms": 0.24461,
+        "p95_ms": 0.449505,
+        "max_ms": 0.904338
+      },
+      "mcp_inventory_guard_overhead": {
+        "samples": 13,
+        "mean_ms": 0.7415476923076922,
+        "p50_ms": 0.61923,
+        "p95_ms": 1.4481,
+        "max_ms": 1.4481
+      },
+      "deterministic_policy_overhead": {
+        "samples": 272,
+        "mean_ms": 0.10844772426470588,
+        "p50_ms": 0.097023,
+        "p95_ms": 0.201143,
+        "max_ms": 0.423531
+      },
+      "deterministic_evaluator_overhead": {
+        "samples": 78,
+        "mean_ms": 0.8898836666666667,
+        "p50_ms": 0.478466,
+        "p95_ms": 3.346656,
+        "max_ms": 7.751173
+      },
+      "case_latency": {
+        "samples": 78,
+        "mean_ms": 79.78205128205128,
+        "p50_ms": 16,
+        "p95_ms": 618,
+        "max_ms": 1170
+      }
+    }
+  ],
+  "audit": {
+    "cases": 156,
+    "passed": 156,
+    "verdicts": {
+      "pass": 26,
+      "block": 127,
+      "warn": 3
+    },
+    "unresolved_cases": 0,
+    "finding_dispositions": {
+      "real_target_security_failure": 134,
+      "policy_violation_or_suspicious_content_only": 25,
+      "expected_controlled_failure": 3,
+      "legitimate_prevented_attack": 99
+    }
+  },
+  "measurement_notes": "Gateway timings include local policy/schema/scope/canary/confirmation checks and receipt generation. MCP timings measure inventory comparison/inspection only, excluding subprocess startup and JSON-RPC. Case latency includes local MCP transport. No LLM calls; token/cost measurements are not applicable."
+}

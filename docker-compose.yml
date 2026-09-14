@@ -80,9 +80,9 @@ services:
       api: { condition: service_healthy }
       qdrant: { condition: service_healthy }
     healthcheck:
-      test: ["CMD", "python", "-c", "from redis import Redis; assert Redis.from_url('redis://redis:6379/0').ping()"]
+      test: ["CMD", "arq", "--check", "apps.api.app.workers.run_worker.WorkerSettings"]
       interval: 15s
-      timeout: 5s
+      timeout: 10s
       retries: 5
   web:
     build:

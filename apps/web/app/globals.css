@@ -249,3 +249,20 @@ input:focus, textarea:focus, select:focus { border-color: var(--red); box-shadow
   .content { padding-top: 28px; }
   .auth-card { width: min(440px, calc(100% - 30px)); padding: 28px 24px; }
 }
+
+.security-columns { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; margin: 24px 0; }
+.security-columns table { width: 100%; border-collapse: collapse; }
+.security-columns th, .security-columns td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #252d38; }
+.security-columns h3 { margin: 18px 0 12px; }
+.security-summary p, .security-case p { line-height: 1.6; }
+.security-summary .metric-grid { padding: 20px 0; }
+.security-case pre, .security-finding pre, .security-columns pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 480px; overflow: auto; }
+.security-case code { overflow-wrap: anywhere; }
+.security-finding { border: 1px solid #352832; padding: 20px; border-radius: 10px; margin: 16px 0; background: #100e15; }
+.security-finding > div { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.security-finding span { color: #f3aaba; }
+.security-launch { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+.security-launch label { display: grid; gap: 8px; }
+.security-launch select { width: 100%; }
+.security-summary details, .security-case details { margin: 12px 0; }
+@media (max-width: 900px) { .security-columns, .security-launch { grid-template-columns: 1fr; } }

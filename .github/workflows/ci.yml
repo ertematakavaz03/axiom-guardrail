@@ -1,9 +1,9 @@
-name: Phase 1 CI
+name: Axiom Guardrail CI
 
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [main, master, phase3/security-redteam-mcp]
 
 jobs:
   backend:
@@ -16,7 +16,7 @@ jobs:
       - run: ruff format --check .
       - run: ruff check .
       - run: mypy apps services packages demos
-      - run: pytest tests/unit tests/golden -q
+      - run: pytest tests/unit tests/golden tests/benchmarks -q
 
   frontend:
     runs-on: ubuntu-latest
@@ -54,9 +54,14 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 5s --health-timeout 3s --health-retries 10
+      qdrant:
+        image: qdrant/qdrant:v1.15.4
+        ports: ["6333:6333"]
     env:
       AGENTARENA_DATABASE_URL: postgresql+asyncpg://agentarena:agentarena@localhost:5432/agentarena_test
       AGENTARENA_REDIS_URL: redis://localhost:6379/0
+      AGENTARENA_QDRANT_URL: http://localhost:6333
+      AGENTARENA_QDRANT_COLLECTION_PREFIX: agentarena_test
       AGENTARENA_JWT_SECRET: integration-only-secret
     steps:
       - uses: actions/checkout@v4
@@ -66,4 +71,3 @@ jobs:
       - run: alembic upgrade head
       - run: alembic current
       - run: pytest tests/integration -q -m integration
-

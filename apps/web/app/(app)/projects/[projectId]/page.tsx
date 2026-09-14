@@ -57,6 +57,9 @@ export default function ProjectDetailPage() {
         <div><strong>{data.runs.filter((run) => run.verdict === "block").length}</strong><span>Blocked</span></div>
       </div>
       <div className="card-grid three">
+        <Link className="action-card" href={`/projects/${projectId}/security`}>
+          <span>SEC</span><div><h2>Security & red team</h2><p>Manage policies, inspect MCP trust, and run controlled attacks.</p></div><b>Open →</b>
+        </Link>
         <Link className="action-card" href={`/projects/${projectId}/agents`}>
           <span>AG</span><div><h2>Agent registry</h2><p>Register immutable versions and adapter contracts.</p></div><b>Manage →</b>
         </Link>

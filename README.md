@@ -192,6 +192,40 @@ Axiom evaluated the independently healthy [LangGraph Customer Support Agent](htt
 
 The separate 20-case × 3-repeat stability run measured 95% verdict, 100% tool-selection, 100% argument, 95% fact, and 90% hallucination consistency. These are observational local benchmark results—not an endorsement, partnership, certification, or production-capacity claim. See the [full reproducible report](docs/benchmarks/langgraph-support-v1-report.md).
 
+## Phase 3 security case study
+
+The controlled Security Lab contains **65 attacks across 13 categories and 13
+benign controls**. Two persisted API → queue → worker runs produced **156
+executions**. Observational mode recorded 62 successful policy violations or
+disclosures and three controlled-failure review outcomes. Preventive mode blocked
+55/65 attacks (84.6%); ten prompt/secret disclosures through response or log
+sinks remained successful (15.4%). All 65 attacks were detected in each mode.
+Benign false positives were **0/13 in each mode**; twelve controls share a public
+status behavior, so this is a narrow benign sample.
+
+The tool gateway enforces authorization, schemas, destinations, cumulative
+budgets and single-use confirmation before execution. MCP evidence includes
+local JSON-RPC calls, poisoned definitions/content, forbidden capabilities,
+confusable tool names and inventory/schema drift. Detection is distinct from
+prevention: final response/log sinks remain outside the tool gateway. This
+deterministic synthetic target uses no LLM and does not establish model security.
+
+See the [measured report](docs/phase3-security-report.md),
+[all-case audit](docs/phase3-security-audit.md) and
+[recovery/reproduction checkpoint](docs/phase3-continuation-checkpoint.md).
+Existing evidence can be verified offline without rerunning the target:
+
+```bash
+python -m demos.security_lab.audit --source benchmarks/results/security-lab-v1/20260906-verified --output docs/phase3-security-audit.md
+python -m demos.security_lab.verify --docker --full --migration-roundtrip
+```
+
+The verifier requires existing Docker services and `agentarena_phase3_test`.
+It isolates Redis and Qdrant from the persisted demo benchmark. In the UI, open a
+project's Security page to inspect policies/MCP registrations, install the local
+lab and launch either mode. Run and case views expose security evidence and N/A
+for unrelated scores or unavailable token/cost telemetry.
+
 ## Generic HTTP agent contract
 
 Register an agent version with `adapter_type: generic_http` and an HTTPS `endpoint_url`. Axiom Guardrail sends:
@@ -234,6 +268,10 @@ Runs/evidence: `POST /v1/runs`, run list/detail, case list/detail, case trace/ev
 
 RAG: project corpora and retrieval configs; corpus document creation, JSON ingestion, multipart upload, and retrieval; document chunks/versions; scenario gold evidence; and case retrieval/claim/citation trace projections.
 
+Security: project security policies and MCP registrations, local demo installation,
+run/case security projections, and failed/stale security-run recovery. External
+HTTP adapters support observation only; prevention requires a host-owned executor.
+
 All protected resource lookups join through organization membership. A foreign resource is returned as not found rather than revealing its existence.
 
 ## Evaluation metrics
@@ -267,7 +305,10 @@ npm --prefix apps/web run typecheck
 npm --prefix apps/web run build
 ```
 
-Integration tests refuse to drop or recreate a database unless its URL contains `_test` (or the explicit test override is set). CI provisions isolated PostgreSQL and Redis services, applies Alembic, and runs the full API → queue → worker → trace acceptance path without an LLM key.
+Integration tests require the parsed database name to end in `_test`; no override
+permits a production database. Tests truncate isolated tables after checking the
+migration schema. CI provisions PostgreSQL, Redis and Qdrant, applies Alembic, and
+runs the API → queue → worker → trace acceptance path without an LLM key.
 
 ## Current limitations
 
@@ -286,4 +327,9 @@ Integration tests refuse to drop or recreate a database unless its URL contains 
 
 ## Outside the current milestone
 
-Semantic-judge plugins, version comparison, advanced attack packs, generated red-team cases, failure clustering, richer authorization roles, managed credential references, and release-policy workflows remain future work. MCP, MLflow, fine-tuning, model routing, Kubernetes/cloud infrastructure, billing, SSO, generated PDF reports, and chat integrations are not part of Phase 2.
+Semantic-judge plugins, version comparison, generated red-team cases, failure
+clustering, richer authorization roles, managed credential references and
+release-policy workflows remain future work. Phase 3 adds local MCP security;
+remote MCP deployment, distributed consent storage, output-sink enforcement,
+MLflow, fine-tuning, model routing, Kubernetes/cloud infrastructure, billing, SSO,
+generated PDF reports and chat integrations remain outside this milestone.

@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import type { CaseResult, Run } from "@/lib/types";
 import { Breadcrumbs, Loading, MetricCard, PageHeader } from "@/components/ui";
 import { StatusBadge } from "@/components/status-badge";
+import { SecuritySummary } from "@/components/security-evidence";
 
 export default function RunDetailPage() {
   const { runId } = useParams<{ runId: string }>();
@@ -61,8 +62,8 @@ export default function RunDetailPage() {
       />
       <div className="run-hero panel">
         <div className={`score-ring score-${run.verdict ?? "queued"}`}>
-          <strong>{run.overall_score ?? "—"}</strong>
-          <span>OVERALL</span>
+          <strong>{metrics.security ? metrics.security.attacks_executed : run.overall_score ?? "—"}</strong>
+          <span>{metrics.security ? "ATTACKS" : "OVERALL"}</span>
         </div>
         <div>
           <span className="eyebrow">RELEASE VERDICT</span>
@@ -72,7 +73,7 @@ export default function RunDetailPage() {
                 ? "Release blocked"
                 : run.verdict === "warn"
                   ? "Review required"
-                  : "Ready to ship"
+                  : metrics.security ? "No security gate findings" : "Ready to ship"
               : "Evaluation in progress"}
           </h2>
           <p>
@@ -89,17 +90,18 @@ export default function RunDetailPage() {
           />
         </div>
       </div>
+      {metrics.security && <SecuritySummary metrics={metrics.security} />}
       <section className="metric-grid compact">
         <MetricCard
           label="Task Success"
-          value={metrics.task_success !== undefined ? `${metrics.task_success}%` : "—"}
+          value={metrics.task_success != null ? `${metrics.task_success}%` : "N/A"}
         />
         <MetricCard
           label="Tool Selection"
           value={
-            metrics.tool_selection_accuracy !== undefined
+            metrics.tool_selection_accuracy != null
               ? `${metrics.tool_selection_accuracy}%`
-              : "—"
+              : "N/A"
           }
         />
         <MetricCard
@@ -115,7 +117,7 @@ export default function RunDetailPage() {
               : "—"
           }
         />
-        <MetricCard label="Total tokens" value={metrics.total_tokens ?? "—"} />
+        <MetricCard label="Total tokens" value={metrics.total_tokens ?? "N/A"} />
       </section>
       {external && externalSnapshot && (
         <>
@@ -199,7 +201,7 @@ export default function RunDetailPage() {
                 </code>
                 <span>{item.latency_ms ?? "—"} ms</span>
                 <span>{item.total_tokens ?? "—"}</span>
-                <b>{item.score ?? "—"} →</b>
+                <b>{metrics.security ? "N/A" : item.score ?? "—"} →</b>
               </Link>
             ))}
         </div>

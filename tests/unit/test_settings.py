@@ -17,7 +17,8 @@ def test_compose_style_environment_values_parse(monkeypatch: MonkeyPatch) -> Non
     assert settings.langfuse_public_key is not None
 
 
-def test_production_rejects_default_jwt_secret() -> None:
+def test_production_rejects_default_jwt_secret(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.delenv("AGENTARENA_JWT_SECRET", raising=False)
     try:
         Settings(environment="production", _env_file=None)
     except ValidationError as error:
