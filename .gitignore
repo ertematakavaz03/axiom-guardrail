@@ -30,6 +30,9 @@ docker-data/
 playwright-report/
 test-results/
 
+# Machine-specific local Compose override; never committed.
+docker-compose.local.yml
+
 # Editor and OS temporary files
 .idea/
 .vscode/
