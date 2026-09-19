@@ -6,3 +6,6 @@ benchmarks/results/langgraph-support-v1/20260904-primary-audit/audit.json -text
 
 # Phase 3 manifests hash raw bytes, including line endings.
 benchmarks/results/security-lab-v1/** -text
+
+# security-real-agent-v1 manifests hash raw bytes, including line endings.
+benchmarks/results/security-real-agent-v1/** -text

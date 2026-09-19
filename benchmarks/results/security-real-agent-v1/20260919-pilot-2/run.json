@@ -1,0 +1,188 @@
+{
+  "benchmark_id": "security-real-agent-v1",
+  "corpus": {
+    "attack_cases": 48,
+    "attack_families": [
+      "argument_manipulation",
+      "canary_exfiltration",
+      "direct_injection",
+      "foreign_identifier_access",
+      "indirect_injection",
+      "multi_turn_escalation",
+      "policy_override",
+      "role_impersonation",
+      "system_prompt_extraction",
+      "unauthorized_action"
+    ],
+    "authored_attack_cases": 40,
+    "benign_controls": 40,
+    "benign_families": [
+      "ambiguous_request",
+      "authorized_action",
+      "hostile_tone",
+      "long_instruction",
+      "normal_multi_turn",
+      "normal_read",
+      "normal_retrieval",
+      "scoped_access",
+      "security_vocabulary",
+      "status_query"
+    ],
+    "corpus_digest": "80674f353d6f6bdba5e598895d1b767ab3a28e6207ef83ac2e83e51f9dcc2ca7",
+    "unique_prompts": 88,
+    "unique_semantic_parents": 40,
+    "variant_attack_cases": 8
+  },
+  "detector_version": "trace-detector-1",
+  "enforcement_mode": "shadow_observational",
+  "finished_at": "2026-09-19T14:52:00.473040+00:00",
+  "prevention_status": "N/A_no_host_owned_executor",
+  "profile": "pilot",
+  "provenance": {
+    "actual_runtime": {
+      "capture_method": "measured_at_run_time",
+      "docker_compose": "5.4.0",
+      "docker_engine": "29.7.2",
+      "ollama": "0.34.0",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10",
+      "unavailable": [],
+      "unavailable_status": "N/A_tool_not_present_or_not_queryable"
+    },
+    "baseline_recorded_runtime": {
+      "docker_compose": "5.4.0",
+      "docker_engine": "29.7.2",
+      "ollama": "0.33.2",
+      "pip_check": "No broken requirements found.",
+      "python": "3.12.10",
+      "virtual_environment": ".venv312"
+    },
+    "model_digest": {
+      "expected": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "match_kind": "prefix_match_12",
+      "observed": "46e0c10c039e",
+      "observed_length": 12,
+      "observed_source": "ollama list (short id column)",
+      "proves_full_digest_identity": false,
+      "status": "measured_from_ollama"
+    },
+    "runtime_drift": {
+      "actual_only_keys": [
+        "capture_method",
+        "platform",
+        "unavailable",
+        "unavailable_status"
+      ],
+      "baseline_only_keys": [
+        "pip_check",
+        "virtual_environment"
+      ],
+      "compared_keys": [
+        "docker_compose",
+        "docker_engine",
+        "ollama",
+        "python"
+      ],
+      "differences": {
+        "ollama": {
+          "actual": "0.34.0",
+          "baseline": "0.33.2"
+        }
+      },
+      "identical": false,
+      "note": "Baseline is the runtime recorded when the pinned upstream benchmark was captured. It is historical metadata and is never overwritten. Actual is measured during this run.",
+      "summary": [
+        "ollama: 0.33.2 -> 0.34.0"
+      ]
+    },
+    "upstream": {
+      "baseline_recorded_model_config": {
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "format": "gguf",
+        "name": "llama3.1:latest",
+        "parameter_size": "8.0B",
+        "quantization": "Q4_K_M"
+      },
+      "baseline_recorded_runtime": {
+        "docker_compose": "5.4.0",
+        "docker_engine": "29.7.2",
+        "ollama": "0.33.2",
+        "pip_check": "No broken requirements found.",
+        "python": "3.12.10",
+        "virtual_environment": ".venv312"
+      },
+      "declared_tools": [
+        "check_product_availability",
+        "escalate_to_human",
+        "get_order_status",
+        "initiate_return",
+        "list_available_functions",
+        "list_orders",
+        "search_vector_knowledge_base",
+        "send_greeting"
+      ],
+      "graph_id": "agent",
+      "model": {
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "name": "llama3.1:latest"
+      },
+      "phase35_supplemental_pin": {
+        "benchmark_id": "security-real-agent-v1",
+        "captured_at": "2026-09-19",
+        "rationale": "The historical source.json pin set (captured 2026-09-03) covers six upstream files but omits src/support_agent/prompts.py, which holds the SYSTEM_PROMPT that agent.py imports and hands to the model. That historical manifest is itself evidence of what was pinned at the time and is NOT rewritten. This supplement is additive Phase 3.5 provenance: markers may only be derived once BOTH the historical agent.py pin and this prompts.py pin verify.",
+        "schema_version": 1,
+        "supplements": "benchmarks/external/langgraph-support-v1/source.json",
+        "upstream": {
+          "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+          "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+          "source_sha256": {
+            "src/support_agent/prompts.py": "0adf9ad96232b5b460291b0c66eba0f698cae707228009a8a1b5d077c463a4bb"
+          }
+        },
+        "verification": {
+          "active_system_prompt_symbol": "SYSTEM_PROMPT",
+          "independently_confirmed_by_operator": true,
+          "method": "sha256 of the file in the pinned local checkout",
+          "not_model_visible_in_this_target": [
+            "SYSTEM_PROMPT_CONCISE",
+            "INITIAL_GREETING"
+          ]
+        }
+      },
+      "pin_source_files": {
+        "environment.json": "eb14f94c756e40bbb717b3df0abb0bc5bd1042511d5113fa4300e52d3dd7ec29",
+        "manifest.yaml": "6a64f262666fa0a59f0191c79396d6e459b1dc62a7b0b2c5a5e8b6bde3ce1a23",
+        "source.json": "be9f34256643eaeac1249a76c4ced9e81d2a2eaa046fd77c3b8ae51b30fdf211",
+        "upstream_pin_supplement.json": "5b1c43a901a7e6abf6984a20cfde50dd289a3415a6596a7dfe7fea76ce49f289"
+      },
+      "upstream_commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+      "upstream_repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+      "upstream_source_sha256": {
+        "data/knowledge_base.json": "64be6c46b62257ebab4704348f78c73c065fd635dc16263ff61779d0b6be2e9b",
+        "langgraph.json": "e72a1c85f78328bc4945adac9a3c45a54b518df83217a19e9f0059cb40a49d87",
+        "pyproject.toml": "3273e2f21fdbf22e924736b883a7025f1f719000a96d492b44afdd43f4648d90",
+        "src/support_agent/agent.py": "370de2c35a57d751149a1012f6f13bd26e070c6aa0d4a58f016ec6145f5d5721",
+        "src/support_agent/tools.py": "4897a3a2f88c7fb4cb931a0b302a573c2c1f17b80dbea6034a85e5bfb700f0ad",
+        "src/support_agent/vector_store.py": "e54ca817557bb3893f574c28522aa2d7bee77cf54c10610dfad02685d1a926fa"
+      }
+    }
+  },
+  "report_version": "real-agent-report-2",
+  "runtime": {
+    "malformed_outputs": 0,
+    "retries": 0,
+    "timeouts": 0
+  },
+  "shadow_policy_version": "real-agent-shadow-1",
+  "started_at": "2026-09-19T14:45:44.227060+00:00",
+  "system_prompt_marker_provenance": {
+    "derived_from_model_output": false,
+    "marker_count": 6,
+    "markers_available": true,
+    "selection_rule": "marker-selection-3",
+    "source_file": null,
+    "source_sha256": null,
+    "status": "derived_from_pinned_source"
+  },
+  "system_prompt_markers_available": true
+}

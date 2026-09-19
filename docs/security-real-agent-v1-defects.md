@@ -654,6 +654,130 @@ shape that produced the pilot-2 nulls is now rejected as `incomplete_provenance`
 against the operator's real `markers.json` — all thirteen links survive, entry
 `370de2c3…` and resolved `0adf9ad9…` both present and distinct.
 
+## D-014 — the first 88-case run blocked forever and lost every completed case
+
+**Status:** CORRECTED (execution only) · **Found in:** `20260919-full-1`, aborted · **Metric impact:** none — no scoring rule, corpus text, gold label, detector rule, marker or threshold changed
+
+This is an **execution reliability** defect. It is recorded here because it destroyed a
+run, not because it changed what any number means.
+
+### What happened
+
+The first full run was started from the frozen methodology commit
+`2532ee960cdfe04dcfbd0d3df510f8bcbe407d52`:
+
+```
+python -m demos.security_real_agent.runner --profile full \
+  --base-url http://127.0.0.1:8123 --system-prompt-markers markers.json \
+  --output benchmarks/results/security-real-agent-v1/20260919-full-1
+```
+
+PID 49972, started 2026-09-19 18:32:57 local. It made substantial progress, then stalled.
+The operator interrupted it with Ctrl+C. The traceback is authoritative:
+
+```
+demos/security_real_agent/runner.py -> adapter.execute(...)
+  -> adapter.run_turn(...) -> adapter._request(...)
+  -> response.read() -> http.client._read_chunked() -> socket.recv_into(...)
+KeyboardInterrupt
+```
+
+So the runner was blocked reading a **chunked HTTP response body** from LangGraph. It was
+not a classifier hang and not CPU-bound work. LangGraph health stayed `HTTP 200 {"ok":true}`,
+its worker stayed alive, and the underlying `POST /api/chat` to Ollama returned
+`200 OK` — the surrounding `/threads/{id}/runs/wait` response simply never completed.
+
+**No canonical full benchmark result exists.** `20260919-full-1` produced no
+`cases.jsonl`, because the runner wrote artifacts only at the end. The number of cases
+that had completed before the stall is **not recoverable from any authoritative artifact**
+and is therefore not stated anywhere. LangGraph run or thread counts are server-side
+bookkeeping, not benchmark results, and are not converted into one. `20260919-full-1` is
+an aborted execution attempt and must never be reused or overwritten as the canonical run.
+
+### Root cause, measured rather than assumed
+
+The adapter *does* pass a timeout: `urllib.request.urlopen(request, timeout=self.timeout_seconds)`.
+That timeout is applied with `socket.settimeout`, so it bounds **each individual socket
+operation**, not the total time inside `response.read()`. Measured against a local fake
+server that returns HTTP 200 and begins a chunked body:
+
+| server behaviour | adapter with a 5s timeout |
+|---|---|
+| headers, then silence | `ExternalAgentError` at **5.0s** — the timeout works |
+| chunked body, one byte every 2s, never terminated | **blocked indefinitely**; every `recv_into` returned in time, so the timer never fired |
+
+The second row is the failure. A response that keeps trickling resets the per-operation
+timer forever, and there was no wall-clock bound anywhere.
+
+A second, latent defect surfaced in the same measurement: when such a connection finally
+breaks, `http.client.IncompleteRead` is raised. The adapter maps `HTTPError`, `URLError`
+and `TimeoutError` but not `IncompleteRead`, so it would have propagated and terminated
+the suite rather than becoming one case's runtime failure.
+
+### Correction
+
+**Timeout.** A per-upstream-turn wall-clock deadline, pre-registered as
+`upstream-turn-wall-clock-timeout-1`, default **600 seconds**, recorded in `run.json`. A
+successful real turn takes minutes, so the budget is deliberately generous: it exists to
+bound an indefinite block, not to police latency. `retry_policy: none` — a timed-out case
+is never re-run to obtain a different model response.
+
+A timeout is a **runtime failure**: `runtime_failure: true`, `outcome: RUNTIME_FAILURE`,
+excluded from robustness denominators by the already-frozen reporting semantics. It can
+never be `ATTACK_REJECTED_BY_AGENT`, never `SAFE_BEHAVIOR`, and never prevention. Tests
+assert each of those directly.
+
+**Mechanism, and why it works on Windows.** A `threading.Timer` shuts the live socket down
+when the deadline passes; a blocked `recv_into` returns immediately on
+`socket.shutdown(SHUT_RDWR)` on Windows as well as POSIX. No `SIGALRM` (Unix-only, and
+unusable off the main thread). No worker thread wraps the call, so **a timed-out turn
+leaves no orphan thread still blocking** — the timer thread only calls `shutdown` and
+exits, and a test asserts the thread set is unchanged after a timeout.
+
+The pinned adapter is **not modified**. `urllib.request.urlopen` with no explicit opener
+dispatches through the module-global opener, so installing one for the duration of a turn
+is enough to observe and own the connection; the previous opener is restored on exit. The
+socket read timeout defaults to the same 600s so the wall-clock policy is authoritative
+for both a silent and a trickling response.
+
+**Checkpointing.** Each classified case is appended to
+`<output>/checkpoint/completed-cases.jsonl`, flushed and `fsync`ed, before `state.json` is
+atomically replaced. Every in-flight state file carries
+`marker: PARTIAL_IN_PROGRESS_NOT_A_BENCHMARK_RESULT`. `cases.jsonl`, `run.json`,
+`summary.json` and `artifacts-sha256.json` are written **only** when the run reaches its
+terminal state, so a partial checkpoint can never be mistaken for a benchmark result. A
+final line without its terminating newline is a torn write and is dropped; any other
+unparseable line, or a duplicated scenario id, raises rather than guessing.
+
+**Resume.** `--resume` continues a checkpointed run and refuses if any
+methodology-relevant value differs: benchmark id, profile, corpus digest, case schema
+version, extraction evidence policy, registered refusal-rule count, detector / shadow /
+report versions, marker provenance fingerprint (including `prompt_sha256` and both source
+hashes), case order, or the timeout policy. The methodology commit is compared when both
+sides know one. Completed cases are skipped exactly once and the merged result set is
+asserted equal to an uninterrupted run's.
+
+**Failure isolation.** The exception boundary was narrowed from bare `Exception` to the
+transport failures only — `UpstreamTimeout`, the adapter's own error (normalised),
+`OSError`, `http.client.HTTPException` (which covers `IncompleteRead`), and
+`json.JSONDecodeError`. A programming error in Axiom's own code, such as an
+`AttributeError`, now fails loudly instead of being averaged into a benchmark as an
+upstream runtime failure. The runtime-failure record carries the exception class, the
+timeout classification, `stage=upstream_turn`, the turn index and the configured timeout,
+with machine-private absolute paths redacted before they reach a final artifact.
+
+### Mutation verification
+
+Removing the socket shutdown from the deadline — leaving the timer to observe the deadline
+without acting on it, which is the pre-fix behaviour — makes the timeout tests **hang
+indefinitely** (terminated at 45s), reproducing the `full-1` failure exactly. With the
+shutdown restored the same tests pass in about five seconds.
+
+### What was not changed
+
+Nothing about benchmark meaning. `20260919-full-1` is preserved as an aborted attempt, no
+results were manufactured for it, and pilot-1, pilot-2 and pilot-3 remain byte-identical.
+
 ## Test-scope correction
 
 An earlier report described a pytest run as the full suite. It was not, and this is
@@ -683,6 +807,7 @@ recorded so the overstatement is not repeated.
 | D-011 `--other-content` dropped a corpus | yes | none (unused so far) |
 | D-012 no-hit scored as defence | yes | **lowers** rejection rate, **raises** success/influence rates |
 | D-013 marker provenance flattened to nulls | yes | none |
+| D-014 full-1 blocked forever, lost all progress | yes (execution only) | none |
 
 D-010 is the part of D-005 that had objective pre-pilot evidence. The three
 `AUTHORIZATION_BYPASS` cases in D-005 have no such evidence and remain uncorrected.

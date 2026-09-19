@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import importlib.util
 import json
 import os
@@ -19,6 +20,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,8 +28,24 @@ from types import ModuleType
 from typing import Any
 
 from demos.security_real_agent import BENCHMARK_ID
+from demos.security_real_agent.checkpoint import (
+    CHECKPOINT_DIRNAME,
+    Checkpoint,
+    CheckpointCorrupt,
+    ResumeRefused,
+    build_fingerprint,
+    validate_resume,
+)
 from demos.security_real_agent.classify import EXPLICIT_REFUSAL_RULES, classify
 from demos.security_real_agent.corpus import config_for, corpus
+from demos.security_real_agent.deadline import (
+    DEFAULT_UPSTREAM_TURN_TIMEOUT_SECONDS,
+    UpstreamTimeout,
+    UpstreamTransportError,
+    deadline_guard,
+    execution_timeout_policy,
+    timeout_error,
+)
 from demos.security_real_agent.enforcement import SHADOW_POLICY_VERSION, shadow_decisions
 from demos.security_real_agent.models import (
     CASE_SCHEMA_VERSION,
@@ -159,32 +177,79 @@ def select(
     return chosen
 
 
+#: Exceptions that are a *third-party execution* failure and therefore evidence about the
+#: run, not about this harness. Deliberately narrow: a ``TypeError`` or ``AttributeError``
+#: in Axiom's own code is a programming error and must fail loudly rather than be recorded
+#: as an upstream runtime failure and averaged into a benchmark.
+TRANSPORT_FAILURES = (
+    UpstreamTimeout,
+    UpstreamTransportError,
+    OSError,
+    http.client.HTTPException,
+    json.JSONDecodeError,
+)
+
+
+def _failure_execution(exc: BaseException, *, timeout_seconds: float) -> dict[str, Any]:
+    """The runtime-failure representation for a case that never produced a response."""
+    turn_index = exc.turn_index if isinstance(exc, UpstreamTimeout) else None
+    errors: list[str] = [
+        f"exception_class={type(exc).__module__}.{type(exc).__name__}",
+        f"timeout={'true' if isinstance(exc, UpstreamTimeout) else 'false'}",
+        "stage=upstream_turn",
+        f"turn_index={turn_index if turn_index is not None else 'unknown'}",
+        f"configured_timeout_seconds={timeout_seconds:g}",
+        # The message is last so a truncating reader still sees the classification.
+        f"message={_redact(str(exc))}",
+    ]
+    return {"messages": [], "tool_calls": [], "final_response": "", "errors": errors}
+
+
+def timed_out(case: RealAgentCaseResult) -> bool:
+    """Was this case's runtime failure the wall-clock timeout, per its own trace record?"""
+    errors = case.raw_trace.get("runtime_errors", []) if case.raw_trace else []
+    return any(str(item).strip() == "timeout=true" for item in errors)
+
+
+def _redact(message: str) -> str:
+    """Drop machine-private absolute paths before a message reaches a final artifact."""
+    message = re.sub(r"[A-Za-z]:\\\\[^\s'\"]+", "<path>", message)
+    message = re.sub(r"[A-Za-z]:\\[^\s'\"]+", "<path>", message)
+    message = re.sub(r"(?<![\w])/(?:home|Users|root|mnt|tmp)/[^\s'\"]+", "<path>", message)
+    return message[:500]
+
+
 def run(
     scenarios: Sequence[RealAgentScenario],
     transport: Transport,
     *,
     system_prompt_markers: list[str] | None = None,
+    on_case: Callable[[RealAgentCaseResult, float], None] | None = None,
+    timeout_seconds: float = DEFAULT_UPSTREAM_TURN_TIMEOUT_SECONDS,
 ) -> tuple[list[RealAgentCaseResult], dict[str, int]]:
-    """Execute scenarios and classify each one. Runtime failures are recorded, not hidden."""
+    """Execute scenarios and classify each one. Runtime failures are recorded, not hidden.
+
+    ``on_case`` is invoked after each case is classified, with the result and its wall
+    clock. It is how the caller persists a checkpoint, so a crash loses at most the case
+    that was in flight. A transport failure isolates to its own case: the suite continues.
+    """
     results: list[RealAgentCaseResult] = []
     runtime = {"malformed_outputs": 0, "timeouts": 0, "retries": 0}
     for scenario in scenarios:
+        started = time.perf_counter()
         try:
             execution = transport(scenario.id, list(scenario.turns))
-        except Exception as exc:  # noqa: BLE001 - a failure is evidence, never a defence
-            message = f"{type(exc).__name__}: {exc}"
-            if "timeout" in message.lower():
+        except TRANSPORT_FAILURES as exc:
+            if isinstance(exc, UpstreamTimeout):
                 runtime["timeouts"] += 1
-            execution = {
-                "messages": [],
-                "tool_calls": [],
-                "final_response": "",
-                "errors": [message],
-            }
+            execution = _failure_execution(exc, timeout_seconds=timeout_seconds)
         if not str(execution.get("final_response", "")).strip() and not execution.get("errors"):
             runtime["malformed_outputs"] += 1
         trace = build_trace(scenario, execution)
-        results.append(evaluate(scenario, trace, system_prompt_markers=system_prompt_markers))
+        result = evaluate(scenario, trace, system_prompt_markers=system_prompt_markers)
+        results.append(result)
+        if on_case is not None:
+            on_case(result, time.perf_counter() - started)
     return results, runtime
 
 
@@ -471,16 +536,61 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the security-real-agent-v1 benchmark")
     parser.add_argument("--base-url", default="http://127.0.0.1:8123")
     parser.add_argument("--assistant-id", default="agent")
-    parser.add_argument("--timeout-seconds", type=float, default=180.0)
+    parser.add_argument(
+        "--upstream-turn-timeout-seconds",
+        type=float,
+        default=DEFAULT_UPSTREAM_TURN_TIMEOUT_SECONDS,
+        help=(
+            "authoritative wall-clock budget for one upstream turn. Bounds an indefinite "
+            "block; it is not a latency policy and never affects scoring"
+        ),
+    )
+    parser.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help=(
+            "socket read timeout handed to the pinned adapter. Defaults to the turn "
+            "timeout so the wall-clock policy stays authoritative for both a silent and a "
+            "trickling response"
+        ),
+    )
     parser.add_argument("--output", default=str(RESULTS_ROOT / "pilot"))
     parser.add_argument("--profile", choices=["pilot", "full"], default="pilot")
     parser.add_argument("--system-prompt-markers", default=None)
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "continue a run from the checkpoint in --output. Refuses if any "
+            "methodology-relevant configuration differs from the checkpointed run"
+        ),
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="validate the corpus and print statistics without calling the model",
     )
     return parser.parse_args(argv)
+
+
+def methodology_commit() -> str | None:
+    """The commit the harness is running from, when it can be read. Never fabricated."""
+    git = shutil.which("git")
+    if git is None:
+        return None
+    try:
+        completed = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [git, "-C", str(REPO_ROOT), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    value = completed.stdout.strip()
+    return value if completed.returncode == 0 and len(value) == 40 else None
 
 
 def load_upstream_adapter_module() -> ModuleType:
@@ -537,17 +647,109 @@ def main(argv: Sequence[str] | None = None) -> int:
         Path(args.system_prompt_markers) if args.system_prompt_markers else None
     )
 
-    adapter = _load_adapter(args.base_url, args.assistant_id, args.timeout_seconds)
-
-    def transport(case_id: str, turns: list[str]) -> dict[str, Any]:
-        result = adapter.execute(case_id, turns)
-        return dict(result)
-
-    started = utc_now()
-    results, runtime = run(selected, transport, system_prompt_markers=markers)
-    finished = utc_now()
+    turn_timeout = float(args.upstream_turn_timeout_seconds)
+    socket_timeout = float(args.timeout_seconds) if args.timeout_seconds else turn_timeout
+    timeout_policy = execution_timeout_policy(turn_timeout, socket_timeout)
 
     output = Path(args.output)
+    fingerprint = build_fingerprint(
+        profile=args.profile,
+        corpus_digest=str(statistics["corpus_digest"]),
+        case_schema_version=CASE_SCHEMA_VERSION,
+        extraction_evidence_policy=EXTRACTION_EVIDENCE_POLICY,
+        explicit_refusal_rules_registered=len(EXPLICIT_REFUSAL_RULES),
+        detector_version=DETECTOR_VERSION,
+        shadow_policy_version=SHADOW_POLICY_VERSION,
+        report_version=REPORT_VERSION,
+        provenance=marker_provenance,
+        case_order=[scenario.id for scenario in selected],
+        execution_timeout_policy=timeout_policy,
+        methodology_commit=methodology_commit(),
+    )
+
+    checkpoint = Checkpoint(output)
+    carried: list[RealAgentCaseResult] = []
+    if args.resume:
+        if not checkpoint.exists():
+            print(f"no checkpoint under {output / CHECKPOINT_DIRNAME}; nothing to resume")
+            return 2
+        try:
+            state, carried, torn = checkpoint.load()
+            validate_resume(state, fingerprint)
+        except (CheckpointCorrupt, ResumeRefused) as exc:
+            # Fail safely and loudly. Never repair a checkpoint by guessing, and never
+            # continue a run whose meaning would differ from the one that was interrupted.
+            print(f"{type(exc).__name__}: {exc}")
+            return 2
+        if torn:
+            print("checkpoint: discarded one torn trailing line from an interrupted append")
+        print(f"resuming: {len(carried)} case(s) already completed, re-running the rest")
+    elif checkpoint.exists():
+        print(
+            f"refusing to start: a checkpoint already exists under "
+            f"{output / CHECKPOINT_DIRNAME}. Pass --resume to continue it, or choose a "
+            "new --output directory."
+        )
+        return 2
+
+    done = {case.scenario_id for case in carried}
+    remaining = [scenario for scenario in selected if scenario.id not in done]
+    checkpoint.begin(fingerprint, completed=[case.scenario_id for case in carried])
+
+    adapter = _load_adapter(args.base_url, args.assistant_id, socket_timeout)
+    adapter_error: type[BaseException] = getattr(
+        load_upstream_adapter_module(), "ExternalAgentError", RuntimeError
+    )
+
+    def transport(case_id: str, turns: list[str]) -> dict[str, Any]:
+        with deadline_guard(turn_timeout) as watch:
+            try:
+                result = adapter.execute(case_id, turns)
+            except BaseException as exc:
+                # The socket was shut down by the deadline timer: whatever the adapter or
+                # http.client raised on the way out, the cause is the timeout.
+                if watch.expired:
+                    raise timeout_error(watch) from exc
+                if isinstance(exc, adapter_error):
+                    raise UpstreamTransportError(str(exc)) from exc
+                raise
+        return dict(result)
+
+    total = len(selected)
+    completed_ids = [case.scenario_id for case in carried]
+    run_started = time.perf_counter()
+
+    def on_case(case: RealAgentCaseResult, seconds: float) -> None:
+        completed_ids.append(case.scenario_id)
+        checkpoint.append(case, fingerprint, completed_ids)
+        label = case.outcome.value
+        if case.runtime_failure and timed_out(case):
+            label = "RUNTIME_FAILURE_TIMEOUT"
+        index = len(completed_ids)
+        elapsed = time.perf_counter() - run_started
+        print(
+            f"[{index}/{total}] {case.scenario_id} {case.family} -> {label} ({seconds:.1f}s)"
+            f"  | completed {index} remaining {total - index} elapsed {elapsed:.0f}s"
+            f" | checkpoint {checkpoint.root}",
+            flush=True,
+        )
+
+    started = utc_now()
+    fresh, runtime = run(
+        remaining,
+        transport,
+        system_prompt_markers=markers,
+        on_case=on_case,
+        timeout_seconds=turn_timeout,
+    )
+    finished = utc_now()
+
+    # Terminal state reached. Only now may final artifacts exist; before this point the
+    # output directory holds nothing but a checkpoint marked PARTIAL.
+    by_id = {case.scenario_id: case for case in [*carried, *fresh]}
+    results = [by_id[scenario.id] for scenario in selected if scenario.id in by_id]
+    checkpoint.finish(fingerprint, [case.scenario_id for case in results])
+
     cases_path = output / "cases.jsonl"
     atomic_write(
         cases_path,
@@ -555,6 +757,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         + "\n",
     )
     metadata = {
+        "execution_timeout_policy": timeout_policy,
+        "resumed": bool(args.resume),
+        "cases_carried_from_checkpoint": len(carried),
         "benchmark_id": BENCHMARK_ID,
         "profile": args.profile,
         "started_at": started,

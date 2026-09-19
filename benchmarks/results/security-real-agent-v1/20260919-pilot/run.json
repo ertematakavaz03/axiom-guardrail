@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "security-real-agent-v1",
+  "corpus": {
+    "attack_cases": 48,
+    "attack_families": [
+      "argument_manipulation",
+      "canary_exfiltration",
+      "direct_injection",
+      "foreign_identifier_access",
+      "indirect_injection",
+      "multi_turn_escalation",
+      "policy_override",
+      "role_impersonation",
+      "system_prompt_extraction",
+      "unauthorized_action"
+    ],
+    "authored_attack_cases": 40,
+    "benign_controls": 40,
+    "benign_families": [
+      "ambiguous_request",
+      "authorized_action",
+      "hostile_tone",
+      "long_instruction",
+      "normal_multi_turn",
+      "normal_read",
+      "normal_retrieval",
+      "scoped_access",
+      "security_vocabulary",
+      "status_query"
+    ],
+    "corpus_digest": "d1c0629d0dd233a0d7dfbb1fa4a0d50e64302def31f7d6197a9522a873677968",
+    "unique_prompts": 88,
+    "unique_semantic_parents": 40,
+    "variant_attack_cases": 8
+  },
+  "detector_version": "trace-detector-1",
+  "enforcement_mode": "shadow_observational",
+  "finished_at": "2026-09-19T13:34:28.582803+00:00",
+  "prevention_status": "N/A_no_host_owned_executor",
+  "profile": "pilot",
+  "report_version": "real-agent-report-1",
+  "runtime": {
+    "malformed_outputs": 0,
+    "retries": 0,
+    "timeouts": 0
+  },
+  "shadow_policy_version": "real-agent-shadow-1",
+  "started_at": "2026-09-19T13:26:25.243498+00:00",
+  "system_prompt_markers_available": false,
+  "upstream": {
+    "declared_tools": [
+      "check_product_availability",
+      "escalate_to_human",
+      "get_order_status",
+      "initiate_return",
+      "list_available_functions",
+      "list_orders",
+      "search_vector_knowledge_base",
+      "send_greeting"
+    ],
+    "graph_id": "agent",
+    "model": {
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "name": "llama3.1:latest"
+    },
+    "pin_source_files": {
+      "environment.json": "eb14f94c756e40bbb717b3df0abb0bc5bd1042511d5113fa4300e52d3dd7ec29",
+      "manifest.yaml": "6a64f262666fa0a59f0191c79396d6e459b1dc62a7b0b2c5a5e8b6bde3ce1a23",
+      "source.json": "be9f34256643eaeac1249a76c4ced9e81d2a2eaa046fd77c3b8ae51b30fdf211"
+    },
+    "recorded_model_config": {
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "format": "gguf",
+      "name": "llama3.1:latest",
+      "parameter_size": "8.0B",
+      "quantization": "Q4_K_M"
+    },
+    "recorded_runtime": {
+      "docker_compose": "5.4.0",
+      "docker_engine": "29.7.2",
+      "ollama": "0.33.2",
+      "pip_check": "No broken requirements found.",
+      "python": "3.12.10",
+      "virtual_environment": ".venv312"
+    },
+    "upstream_commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "upstream_repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "upstream_source_sha256": {
+      "data/knowledge_base.json": "64be6c46b62257ebab4704348f78c73c065fd635dc16263ff61779d0b6be2e9b",
+      "langgraph.json": "e72a1c85f78328bc4945adac9a3c45a54b518df83217a19e9f0059cb40a49d87",
+      "pyproject.toml": "3273e2f21fdbf22e924736b883a7025f1f719000a96d492b44afdd43f4648d90",
+      "src/support_agent/agent.py": "370de2c35a57d751149a1012f6f13bd26e070c6aa0d4a58f016ec6145f5d5721",
+      "src/support_agent/tools.py": "4897a3a2f88c7fb4cb931a0b302a573c2c1f17b80dbea6034a85e5bfb700f0ad",
+      "src/support_agent/vector_store.py": "e54ca817557bb3893f574c28522aa2d7bee77cf54c10610dfad02685d1a926fa"
+    }
+  }
+}
