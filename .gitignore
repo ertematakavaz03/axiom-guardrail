@@ -33,6 +33,10 @@ test-results/
 # Machine-specific local Compose override; never committed.
 docker-compose.local.yml
 
+# Locally derived system-prompt markers for security-real-agent-v1.
+# Derived from the pinned upstream source on the operator's machine; not repo content.
+markers.json
+
 # Editor and OS temporary files
 .idea/
 .vscode/

@@ -137,3 +137,33 @@ baseline, plus diverse benign controls to measure utility and false positives.
 After authorization, start a separate branch and new evidence directory; retain
 Phase 3 raw results and distinguish detection from demonstrated prevention.
 Phase 4 has not been started.
+
+## Phase 3.5 interpretation note (documentation only)
+
+Added 2026-09-19 on branch `phase3.5/security-benchmark-validity`. No figure, artifact
+or hash above is changed; this note records what those figures measure.
+
+The canonical Security Lab is a **deterministic security-policy conformance suite**. Its
+target, `demos/security_lab/target.py`, is an interpreter that executes an
+`AXIOM_COMMANDS=` block supplied by the scenario, not a language model. The 156
+executions completed in 21.6 seconds with no model calls. The suite therefore measures
+whether the policy engine, gateway, receipt chain and evidence ledger behave correctly
+for a given action; it does not measure whether a model can be induced to take that
+action.
+
+Three consequences for how the numbers above must be read:
+
+1. "Detection 65/65 in each mode" is per-scenario conformance. `services/security/runner.py`
+   passes one `PolicyEngine` to both the gateway and `evaluate_security`, and
+   `services/security/evaluator.py` re-invokes `engine.check` on the same action, so the
+   agreement is partly circular. At most 182 of the 261 findings originate from the
+   enforcer; at least 79 come from independent sink, MCP and completeness detectors.
+2. "0/13 benign false positives" covers two distinct behaviours replicated thirteen
+   times, because the controls are generated in a loop over `Category` with one shared
+   prompt. It supports no general false-positive claim.
+3. The ten preventive disclosures remain genuine gaps, and are a property of the policy
+   fixture (`read_secret` is an unrestricted R0 tool) rather than of any agent.
+
+Real-agent susceptibility, independent detection and a diverse false-positive
+measurement are provided by `security-real-agent-v1`. See
+[docs/security-benchmark-taxonomy.md](security-benchmark-taxonomy.md).

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "supplements": "benchmarks/external/langgraph-support-v1/source.json",
+  "benchmark_id": "security-real-agent-v1",
+  "captured_at": "2026-09-19",
+  "rationale": "The historical source.json pin set (captured 2026-09-03) covers six upstream files but omits src/support_agent/prompts.py, which holds the SYSTEM_PROMPT that agent.py imports and hands to the model. That historical manifest is itself evidence of what was pinned at the time and is NOT rewritten. This supplement is additive Phase 3.5 provenance: markers may only be derived once BOTH the historical agent.py pin and this prompts.py pin verify.",
+  "upstream": {
+    "repository": "https://github.com/aperritano/langgraph-customer-support-agent",
+    "commit": "64dea789d7b59ae6a57470091d3dbf4ba43fe7cb",
+    "source_sha256": {
+      "src/support_agent/prompts.py": "0adf9ad96232b5b460291b0c66eba0f698cae707228009a8a1b5d077c463a4bb"
+    }
+  },
+  "verification": {
+    "method": "sha256 of the file in the pinned local checkout",
+    "independently_confirmed_by_operator": true,
+    "active_system_prompt_symbol": "SYSTEM_PROMPT",
+    "not_model_visible_in_this_target": [
+      "SYSTEM_PROMPT_CONCISE",
+      "INITIAL_GREETING"
+    ]
+  }
+}

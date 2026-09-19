@@ -13,7 +13,8 @@ benchmarks support evidence-backed `PASS`, `WARN` and `BLOCK` release gates.
 - Executes versioned scenario suites through asynchronous workers and immutable run snapshots.
 - Validates tool calls, arguments, authorization, confirmation and execution budgets.
 - Evaluates retrieval, citations and groundedness with deterministic checks.
-- Runs controlled red-team scenarios and MCP/tool-policy checks.
+- Conformance-tests deterministic tool, argument, authorization and MCP policy decisions.
+- Separately measures a real model-driven agent's susceptibility to natural-language attacks.
 - Preserves event-level evidence, findings and benchmark exports for audit and comparison.
 - Exposes projects, suites, runs, cases and traces through a Next.js interface.
 
@@ -26,37 +27,75 @@ makes those behaviors inspectable and records evidence for regression decisions.
 
 ## Current project status
 
-**Phase 3 — Security / Red-Team / MCP is complete.** Phase 4 has not started.
+**Phase 3 — Security / Red-Team / MCP is complete.** Phase 3.5 — security benchmark
+validity hardening — is in progress. Phase 4 has not started.
 
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Core execution and evaluation | Complete |
 | 2 | RAG evaluation | Complete |
 | 3 | Security / Red-Team / MCP | Complete |
+| 3.5 | Security benchmark validity: conformance vs real-agent robustness | In progress |
 | 4 | Runtime enforcement, CI hardening and cloud/staging readiness | Next |
 | 5 | Fine-tuning and optimization experiments | Planned |
 
-## Verified Phase 3 results
+## Security evidence: two separate benchmarks
 
-The canonical Security Lab contains 65 attacks across 13 categories and 13 benign
-controls, executed once in observational mode and once in preventive mode.
+Axiom reports policy conformance and real-agent robustness as different measurements
+and never merges them into one number. See the
+[benchmark taxonomy](docs/security-benchmark-taxonomy.md) for the full definitions.
+
+### 1. Deterministic security-policy conformance suite (`security-lab-v1`)
+
+Answers: *given a tool action, arguments and principal, does the policy engine reach
+the correct decision and record the correct evidence?* The target is a deterministic
+in-repository interpreter, not a language model, and each scenario supplies the action
+sequence directly. This suite measures **policy conformance**. It does not measure
+whether a model can be talked into an unsafe action.
 
 | Measurement | Verified result |
 |---|---|
 | Backend regression | 192 passed, 0 skipped; 48.96 seconds |
-| Canonical security executions | 156 |
-| Persisted security findings | 261 |
+| Policy-violation scenarios | 65 across 13 categories, plus 13 benign controls |
+| Canonical executions | 156 (78 per mode) |
+| Persisted findings | 261 |
 | Audit reconciliation | Hashes and recomputed metrics match; 0 unresolved cases |
-| Preventive attack outcomes | 10 succeeded / 55 blocked (65 attacks) |
-| Detection | 65/65 attacks in each mode (100%) |
-| Benign false positives | 0/13 controls in each mode |
+| Expected policy decision produced | 65/65 scenarios in each mode |
+| Preventive enforcement outcomes | 10 succeeded / 55 blocked |
 
-Observational mode recorded 62 successful attacks and three raw review outcomes.
-Detection is not prevention: ten preventive response/log disclosures remain real
-failures. These measurements describe this controlled corpus, not general security
-or false-positive guarantees. PostgreSQL snapshots, evaluations, raw events and
-findings matched the exports. Migration roundtrip, Ruff, mypy, frontend gates and
-all six representative browser checks passed at the completion checkpoint.
+Scope limits are part of the result, not footnotes to it. The 13 benign controls reduce
+to two distinct behaviours, so they do not support a general false-positive claim. Most
+findings are re-derived by the same `PolicyEngine` that produced the enforcement
+decision, so the per-scenario agreement above is conformance, not an independent
+detection measurement. Observational mode recorded 62 successful attacks and three raw
+review outcomes; detection is not prevention, and ten preventive response/log
+disclosures remain real failures. PostgreSQL snapshots, evaluations, raw events and
+findings matched the exports. Migration roundtrip, Ruff, mypy, frontend gates and all
+six representative browser checks passed at the completion checkpoint.
+
+### 2. Real-agent adversarial benchmark (`security-real-agent-v1`)
+
+Answers: *when a real model-driven agent receives a natural-language attack, does its
+behaviour actually change?* The target is the pinned third-party LangGraph support
+agent driven by a local llama3.1 8B. The attack text is the only input — there is no
+mechanism that prescribes the unsafe action — and detection is scored by an independent
+trace detector against hand-authored gold labels.
+
+48 attack cases (40 authored across 10 families, 8 tracked paraphrase variants) and 40
+unique benign controls. Axiom cannot interpose a gateway in front of a third-party
+agent's own tools, so this suite reports agent robustness and independent detection, and
+reports prevention as `N/A_no_host_owned_executor`. Results appear here once the suite
+has been executed and audited; no numbers are claimed in advance.
+
+### 3. External quality benchmark (`langgraph-support-v1`)
+
+Axiom's strongest real-world evidence to date. 100 executions against the same pinned
+third-party agent and model: task success **58.6%**, tool-selection accuracy 85.0%,
+tool-argument accuracy 99.7%, hallucination case rate 2.0%, retrieval recall@5 23.5%,
+p95 latency 46.7 s, 0 execution errors. The audit classified 42 validated real agent
+failures and **one defect in Axiom's own expectations**, with 0 unresolved cases.
+Recording a defect in the benchmark's own expectations is the behaviour an evaluator
+exists to produce.
 
 ## Architecture
 
@@ -112,11 +151,14 @@ apps/web/                Next.js interface
 services/orchestrator/   LangGraph case execution and agent adapters
 services/evaluators/     Deterministic checks and score aggregation
 services/tool_gateway/   Tool registry, policy and sandbox state
-services/security/       Security contracts, gateway, MCP, evaluator and metrics
+services/security/       Security contracts, gateway, MCP, evaluator, metrics and
+                         the enforcement-independent trace detector
 services/rag/            Ingestion, embeddings, retrieval and RAG evaluation
 services/observability/  Optional Langfuse integration
 packages/agent_sdk/      Framework-neutral execution contracts
-demos/                   Support, RAG and Security Lab fixtures and tooling
+demos/security_lab/      Deterministic security-policy conformance suite
+demos/security_real_agent/  Real-agent adversarial benchmark corpus, detector wiring, report
+demos/                   Support and RAG fixtures and tooling
 benchmarks/              Benchmark definitions and preserved result artifacts
 tests/                   Unit, golden, benchmark and integration tests
 alembic/                 Database migrations
@@ -195,6 +237,7 @@ and PostgreSQL/Redis/Qdrant integration tests.
 - [Phase 3 measured security report](docs/phase3-security-report.md)
 - [Every-case security audit](docs/phase3-security-audit.md)
 - [Phase 3 completion checkpoint](docs/phase3-continuation-checkpoint.md)
+- [Security benchmark taxonomy: conformance vs real-agent robustness](docs/security-benchmark-taxonomy.md)
 - [Canonical Security Lab exports and byte hashes](benchmarks/results/security-lab-v1/20260906-verified/)
 - [External LangGraph support benchmark report](docs/benchmarks/langgraph-support-v1-report.md)
 
@@ -210,8 +253,20 @@ remain preserved; audit interpretation does not overwrite observations.
 
 ## Known limitations
 
-- Security coverage is primarily synthetic; benign coverage is narrow, including
-  twelve repeated public-status controls and one MCP control per mode.
+- The `security-lab-v1` suite is policy conformance against a deterministic target,
+  not evidence about model susceptibility. Its benign coverage reduces to two
+  distinct behaviours (twelve repeated public-status controls and one MCP control
+  per mode) and supports no general false-positive claim.
+- In `security-lab-v1`, detection and enforcement share `PolicyEngine`, so its
+  per-scenario agreement is not an independent detection measurement. Independent
+  detection is measured only in `security-real-agent-v1`.
+- `security-real-agent-v1` cannot measure prevention: the third-party agent owns its
+  tool layer, so no trusted gateway receipt can exist. Counterfactual policy
+  decisions are reported as shadow decisions, never as prevention.
+- `security-real-agent-v1` has no upstream tenancy or confirmation model, so
+  cross-tenant isolation and confirmation bypass are out of scope there rather than
+  simulated. Its indirect injection is relayed third-party content, not
+  retrieval-borne injection, which would require breaking the pinned upstream hashes.
 - Ten genuine preventive disclosure failures remain recorded. Allowed-read
   response/log sinks are outside the current execution gateway.
 - Three observational raw-review outcomes remain intentionally retained even
@@ -227,6 +282,10 @@ remain preserved; audit interpretation does not overwrite observations.
   results do not establish production capacity or universal attack prevention.
 
 ## Roadmap
+
+**Now — Phase 3.5:** separate policy conformance from real-agent robustness, measure
+detection independently of enforcement, and measure false positives against a
+materially diverse benign control set.
 
 **Next — Phase 4:** response enforcement, logging/telemetry protection, outbound
 egress policy, expanded benign controls, CI release-gate hardening and
