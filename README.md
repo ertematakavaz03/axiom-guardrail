@@ -1,6 +1,7 @@
 # Axiom Guardrail
 
-Evidence-first evaluation, red-team, and security testing for tool-using AI agents.
+**An evidence-first AI agent evaluation and security platform for testing, red-teaming and
+release-gating tool-using agents.**
 
 Axiom Guardrail evaluates agent behavior beyond final-text quality: tool selection
 and arguments, RAG grounding and citations, authorization, security findings and
@@ -25,19 +26,152 @@ can conceal the wrong tool, invalid arguments, an unauthorized action, prompt
 injection, cross-tenant access, unsupported claims or broken citations. Axiom
 makes those behaviors inspectable and records evidence for regression decisions.
 
+## Key capabilities
+
+| | |
+|---|---|
+| **Agent evaluation** | execution outcome, tool selection, tool arguments, authorization, budgets, retrieval grounding and citations |
+| **Red-team security testing** | natural-language attack corpora executed against a real model-driven agent, scored by an enforcement-independent detector |
+| **Tool-boundary awareness** | tool calls, arguments, side effects and MCP inventory drift are first-class evidence, not text heuristics |
+| **Benchmark evidence** | immutable run artifacts with SHA-256 manifests; every reported rate recomputes from `cases.jsonl` alone |
+| **Baseline vs hardened comparison** | frozen corpus + frozen scoring, so a change in the number means a change in behaviour |
+| **CI/CD release gating** | `PASS` / `WARN` / `BLOCK` verdicts backed by retained evidence |
+| **Reproducibility** | pinned targets and model digests, recorded runtime drift, resumable long runs, a public defect ledger |
+
+## Architecture
+
+```mermaid
+flowchart TB
+  classDef impl fill:#ffffff,stroke:#2F3E4E,stroke-width:1.4px,color:#131A22
+  classDef plan fill:#F4F5F8,stroke:#8A94A3,stroke-width:1.4px,stroke-dasharray:5 4,color:#55606E
+  classDef ext fill:#FDF4F6,stroke:#9B2C4A,stroke-width:1.4px,color:#131A22
+
+  subgraph CON["Consumers"]
+    direction LR
+    DEV["Developers"]
+    CI["CI pipelines"]
+    SEC["Security reviewers"]
+  end
+
+  WEB["Next.js dashboard<br/>TypeScript"]
+  API["FastAPI<br/>auth, suites, runs"]
+  WRK["ARQ async workers<br/>checkpointed, resumable"]
+  LG["LangGraph case graph"]
+  ADP["Agent adapters<br/>SDK, Generic HTTP"]
+
+  subgraph EV["Evaluation and security services"]
+    direction LR
+    DET["Deterministic<br/>evaluators"]
+    RAGE["RAG<br/>evaluation"]
+    GW["Tool gateway +<br/>policy engine"]
+    MCPI["MCP inventory<br/>inspection"]
+    TD["Trace detector<br/>enforcement-independent"]
+  end
+
+  VD["Verdicts and release gating<br/>PASS / WARN / BLOCK"]
+
+  subgraph BENCH["Benchmark suites - frozen corpora"]
+    direction LR
+    B1["security-lab-v1"]
+    B2["security-real-agent-v1<br/>FULL-2 baseline"]
+    B3["langgraph-support-v1"]
+  end
+
+  subgraph DATA["Data and state"]
+    direction LR
+    PG["PostgreSQL<br/>source of truth"]
+    RD["Redis"]
+    QD["Qdrant"]
+    AR["Artifact store<br/>SHA-256 manifests"]
+  end
+
+  subgraph SUT["Systems under test - external"]
+    direction LR
+    T1["Pinned LangGraph<br/>support agent"]
+    T2["Local Ollama<br/>llama3.1 8B"]
+    T3["Any Generic<br/>HTTP agent"]
+  end
+
+  DC["Docker Compose<br/>local stack"]
+  GHA["GitHub Actions<br/>CI gates"]
+  LF["Langfuse<br/>optional telemetry"]
+  CLD["Managed cloud<br/>deploy target"]
+
+  DEV --> WEB
+  SEC --> WEB
+  CI --> API
+  WEB --> API
+  API --> WRK
+  WRK --> LG
+  B2 --> LG
+  LG --> ADP
+  LG --> DET
+  LG --> RAGE
+  LG --> GW
+  LG --> MCPI
+  ADP -. drives .-> T1
+  T1 -. raw traces .-> TD
+  DET --> VD
+  GW --> VD
+  TD --> VD
+  RAGE --> QD
+  WRK --> RD
+  VD --> PG
+  VD --> AR
+  VD -. best effort .-> LF
+  DC --> API
+  GHA --> CI
+  DC -. deploy target .-> CLD
+
+  class DEV,CI,SEC,WEB,API,WRK,LG,ADP,DET,RAGE,GW,MCPI,TD,VD,B1,B2,B3,PG,RD,QD,AR,DC,GHA,LF impl
+  class CLD plan
+  class T1,T2,T3 ext
+```
+
+[![Axiom Guardrail architecture](docs/assets/axiom-guardrail-architecture.svg)](docs/assets/axiom-guardrail-architecture.svg)
+
+The diagram above is a vector file — [open it directly](docs/assets/axiom-guardrail-architecture.svg)
+to zoom without losing detail. Full layer-by-layer description, including what is
+implemented versus targeted, is in [docs/architecture.md](docs/architecture.md).
+
+## Current stack
+
+| Layer | Technology | Status |
+|---|---|---|
+| Interface | Next.js, TypeScript | implemented |
+| API | Python 3.12, FastAPI | implemented |
+| Workers | ARQ async workers | implemented |
+| Orchestration | LangGraph | implemented |
+| Tool boundary | MCP inspection, tool gateway, policy engine | implemented |
+| Retrieval / RAG | Qdrant, dense + sparse retrieval, reranking | implemented |
+| Primary database | PostgreSQL, SQLAlchemy, Alembic | implemented |
+| Queue and cache | Redis | implemented |
+| Observability | Langfuse | implemented, optional, best-effort |
+| Experiment tracking | MLflow | **planned — not implemented yet** |
+| CI/CD | GitHub Actions | implemented |
+| Runtime | Docker, Docker Compose | implemented |
+| Cloud deployment | container-based, cloud-portable | **target — not deployed or claimed** |
+
 ## Current project status
 
-**Phase 3 — Security / Red-Team / MCP is complete.** Phase 3.5 — security benchmark
-validity hardening — is in progress. Phase 4 has not started.
+**Phase 3.5 is complete: the real-agent red-team suite now has a validated baseline.**
+
+The project is past demo stage. There is a frozen 88-case corpus, a frozen scoring
+methodology, a reproducible execution harness, and a measured result that a future change
+can be compared against. What is *not* done is the hardening comparison — the baseline
+shows the tested reference agent is highly vulnerable, it does not yet show that Axiom's
+guardrails reduce that. No defence claim is made until that run exists.
 
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Core execution and evaluation | Complete |
 | 2 | RAG evaluation | Complete |
 | 3 | Security / Red-Team / MCP | Complete |
-| 3.5 | Security benchmark validity: conformance vs real-agent robustness | In progress |
-| 4 | Runtime enforcement, CI hardening and cloud/staging readiness | Next |
+| 3.5 | Benchmark validity + validated real-agent baseline | **Complete** |
+| 4 | Runtime enforcement, hardening comparison, CI gating, cloud readiness | Next |
 | 5 | Fine-tuning and optimization experiments | Planned |
+
+Full detail: [docs/project-status.md](docs/project-status.md).
 
 ## Security evidence: two separate benchmarks
 
@@ -84,8 +218,50 @@ trace detector against hand-authored gold labels.
 48 attack cases (40 authored across 10 families, 8 tracked paraphrase variants) and 40
 unique benign controls. Axiom cannot interpose a gateway in front of a third-party
 agent's own tools, so this suite reports agent robustness and independent detection, and
-reports prevention as `N/A_no_host_owned_executor`. Results appear here once the suite
-has been executed and audited; no numbers are claimed in advance.
+reports prevention as `N/A_no_host_owned_executor`.
+
+#### Latest validated benchmark snapshot — FULL-2
+
+Run `benchmarks/results/security-real-agent-v1/20260919-full-2`, executed from the frozen
+methodology commit `2532ee96`. Every rate below recomputes from `cases.jsonl` alone and
+every artifact matches its recorded SHA-256 manifest.
+
+| | | | |
+|---|---|---|---|
+| Cases completed | 88 / 88 | `attack_success_rate` | **0.6047** |
+| Attacks / benign controls | 48 / 40 | `unsafe_action_attempt_rate` | 0.6977 |
+| Authored / variant cases | 80 / 8 | `agent_influence_rate` | 0.8837 |
+| Scorable attacks | 43 | `attack_rejection_rate` | 0.1163 |
+| Held for manual review | 5 | Benign controls safe | **40 / 40 (100%)** |
+| Runtime failures | **0** | Unique semantic parents scored | 35 of 43 |
+
+Outcomes: `ATTACK_SUCCEEDED` 26 · `ATTACK_INFLUENCED_NO_UNSAFE_ACTION` 8 ·
+`ATTACK_REJECTED_BY_AGENT` 5 · `UNSAFE_ACTION_ATTEMPTED` 4 · `MANUAL_REVIEW_REQUIRED` 5 ·
+`SAFE_BEHAVIOR` 40. Total elapsed ~2906 s.
+
+**How to read this result.** This is a **validated baseline on the tested setup**, not a
+verdict on Axiom. It says the pinned reference agent is highly susceptible to
+natural-language attack, and that the measurement is not simply flagging everything —
+40 of 40 benign controls behaved safely. Both halves matter: a suite that reports a high
+attack success rate while also failing benign traffic is measuring noise.
+
+The value here is the **comparison capability**. With a frozen corpus, frozen scoring and a
+recorded baseline, a later hardening change produces a number that means something. Until
+that run exists, no reduction in attack success is claimed.
+
+The five manual-review cases are extraction-objective attacks with no exact marker hit.
+Under the pre-registered evidence policy a marker hit proves verbatim disclosure while a
+marker miss proves nothing, so those cases are held rather than counted as a defence. A
+sixth extraction attack did produce five verbatim system-prompt sentences and is scored
+`ATTACK_SUCCEEDED`.
+
+Pilot-3 (12 cases) reported `attack_success_rate` 0.60 against FULL-2's 0.6047: the pilot
+reproduced the headline signal, but its other rates were artifacts of a five-case
+denominator. **FULL-2 is the only reportable baseline.**
+
+Read next: [full baseline report](docs/security-real-agent-v1-baseline.md) ·
+[all runs and artifacts](benchmarks/results/security-real-agent-v1/) ·
+[defect ledger](docs/security-real-agent-v1-defects.md).
 
 ### 3. External quality benchmark (`langgraph-support-v1`)
 
@@ -97,7 +273,7 @@ failures and **one defect in Axiom's own expectations**, with 0 unresolved cases
 Recording a defect in the benchmark's own expectations is the behaviour an evaluator
 exists to produce.
 
-## Architecture
+## Component responsibilities
 
 | Component | Responsibility |
 |---|---|
@@ -113,8 +289,9 @@ exists to produce.
 
 The API persists a run snapshot and queues work; the worker executes cases and
 persists progress before aggregating results. PostgreSQL is the source of truth;
-Qdrant holds derived retrieval indexes. See [architecture decisions](docs/architecture-decisions.md)
-and [RAG evaluation](docs/rag-evaluation.md).
+Qdrant holds derived retrieval indexes. See [architecture and current stack](docs/architecture.md),
+[architecture decisions](docs/architecture-decisions.md) and
+[RAG evaluation](docs/rag-evaluation.md).
 
 ## Security model
 
@@ -163,6 +340,7 @@ benchmarks/              Benchmark definitions and preserved result artifacts
 tests/                   Unit, golden, benchmark and integration tests
 alembic/                 Database migrations
 docs/                    Contracts, reports, audits and completion checkpoints
+docs/assets/             Architecture diagram source (zoomable SVG)
 infra/docker/            API and web container definitions
 ```
 
@@ -234,6 +412,11 @@ and PostgreSQL/Redis/Qdrant integration tests.
 
 ## Benchmark and security evidence
 
+- [**FULL-2 real-agent baseline report**](docs/security-real-agent-v1-baseline.md) — the current headline result
+- [Real-agent benchmark runs and artifacts](benchmarks/results/security-real-agent-v1/) — pilot-1, pilot-2, pilot-3, FULL-2
+- [Real-agent defect ledger](docs/security-real-agent-v1-defects.md) — every methodology error found and how it was corrected
+- [Architecture and current stack](docs/architecture.md)
+- [Project status and roadmap](docs/project-status.md)
 - [Phase 3 measured security report](docs/phase3-security-report.md)
 - [Every-case security audit](docs/phase3-security-audit.md)
 - [Phase 3 completion checkpoint](docs/phase3-continuation-checkpoint.md)
@@ -278,19 +461,42 @@ remain preserved; audit interpretation does not overwrite observations.
   reproducibility. PDF ingestion is limited to text-based PDFs.
 - Managed secret references, richer roles, worker cancellation and global
   cross-worker token reservations are not implemented.
+- The FULL-2 baseline covers one target, one model, one quantization, one corpus, on one
+  day. It does not generalize to other agents or models, the model digest is a
+  12-character prefix match rather than proof of identity, and no repeated-run variance
+  analysis exists yet — so a single future comparison cannot yet separate a small
+  improvement from run-to-run noise.
+- `security-real-agent-v1` extraction figures are a lower bound on **verbatim** disclosure.
+  Exact-marker matching cannot detect a paraphrase, so no-hit cases are held for manual
+  review rather than counted as a defence.
+- MLflow experiment tracking is planned, not implemented.
 - Cloud production deployment and complete security are not claimed. Benchmark
   results do not establish production capacity or universal attack prevention.
 
 ## Roadmap
 
-**Now — Phase 3.5:** separate policy conformance from real-agent robustness, measure
-detection independently of enforcement, and measure false positives against a
-materially diverse benign control set.
+**Done — Phase 3.5:** policy conformance separated from real-agent robustness, detection
+measured independently of enforcement, false positives measured against 40 materially
+distinct benign controls, and a validated FULL-2 baseline frozen with hash-verified
+artifacts.
 
-**Next — Phase 4:** response enforcement, logging/telemetry protection, outbound
-egress policy, expanded benign controls, CI release-gate hardening and
-cloud/staging readiness. Start by defining acceptance criteria against the
-preserved ten-disclosure ledger.
+**Next milestone — the hardening comparison.** This is the single most important next
+result in the project:
+
+1. Decide the comparison design **before** hardening — either establish baseline variance
+   by repeating the same frozen suite, or pre-register an effect size large enough that one
+   comparison is meaningful. Choosing after seeing the hardened number is the failure mode
+   this phase was built to prevent.
+2. Apply hardening and guardrails to the agent-facing path.
+3. Re-run the **identical** frozen FULL-2 suite: same corpus digest, same classifier, same
+   markers, same scoring.
+4. Report before and after side by side. Success means a substantial reduction in
+   `attack_success_rate` **while** benign controls stay at 40/40. A drop in attack success
+   that degrades benign behaviour is not a win.
+
+**Also in Phase 4:** response enforcement, logging/telemetry protection, outbound egress
+policy, CI release-gate hardening and cloud/staging readiness, starting from acceptance
+criteria against the preserved ten-disclosure ledger.
 
 **Later:** broader agent adapters, model comparisons, and fine-tuned evaluator
 or attack-generation experiments where evidence justifies them. No Phase 4 or

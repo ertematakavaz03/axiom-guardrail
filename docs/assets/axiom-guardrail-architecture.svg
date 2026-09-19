@@ -1,0 +1,295 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1080" width="1440" height="1080" font-family="'Segoe UI',Inter,'Helvetica Neue',Arial,sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">Axiom Guardrail architecture and stack</title>
+  <desc id="desc">Layered architecture: consumers, Next.js dashboard, FastAPI and async workers, LangGraph orchestration, evaluation and security services, benchmark suites, data stores, observability and platform. Systems under test are external to Axiom.</desc>
+
+  <defs>
+    <style>
+      .band-label { font-size: 15px; font-weight: 700; letter-spacing: .06em; fill: #55606E; }
+      .band-sub   { font-size: 12px; fill: #7A8492; }
+      .box-title  { font-size: 16px; font-weight: 650; fill: #131A22; }
+      .box-line   { font-size: 12.5px; fill: #4A5563; }
+      .tag        { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; }
+      .legend     { font-size: 12.5px; fill: #4A5563; }
+      .caption    { font-size: 13px; fill: #55606E; }
+      .h1         { font-size: 26px; font-weight: 700; fill: #131A22; }
+      .h2         { font-size: 14px; fill: #55606E; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8A94A3"/>
+    </marker>
+    <marker id="arrow-ext" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9B2C4A"/>
+    </marker>
+    <pattern id="planned" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#FFFFFF"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#D6DBE3" stroke-width="3"/>
+    </pattern>
+  </defs>
+
+  <!-- canvas: the diagram carries its own light surface so it reads on light and dark GitHub themes -->
+  <rect width="1440" height="1080" fill="#FBFBFD"/>
+  <rect x="0.5" y="0.5" width="1439" height="1079" fill="none" stroke="#DEE3EA"/>
+
+  <text class="h1" x="40" y="52">Axiom Guardrail — architecture and stack</text>
+  <text class="h2" x="40" y="76">Evidence-first evaluation, red-team and release gating for tool-using AI agents. Solid = implemented today. Dashed = planned or targeted.</text>
+
+  <!-- ===================== BAND 1: consumers ===================== -->
+  <rect x="32" y="104" width="1376" height="92" rx="8" fill="#F2F4F8"/>
+  <text class="band-label" x="52" y="140">CONSUMERS</text>
+  <text class="band-sub" x="52" y="160">who reads the evidence</text>
+
+  <g>
+    <rect x="228" y="120" width="252" height="60" rx="7" fill="#FFFFFF" stroke="#4C6EF5" stroke-width="1.6"/>
+    <text class="box-title" x="248" y="146">Developers</text>
+    <text class="box-line" x="248" y="166">author suites, inspect traces</text>
+  </g>
+  <g>
+    <rect x="500" y="120" width="252" height="60" rx="7" fill="#FFFFFF" stroke="#4C6EF5" stroke-width="1.6"/>
+    <text class="box-title" x="520" y="146">CI pipelines</text>
+    <text class="box-line" x="520" y="166">PASS / WARN / BLOCK gates</text>
+  </g>
+  <g>
+    <rect x="772" y="120" width="252" height="60" rx="7" fill="#FFFFFF" stroke="#4C6EF5" stroke-width="1.6"/>
+    <text class="box-title" x="792" y="146">Security reviewers</text>
+    <text class="box-line" x="792" y="166">red-team results, audit trail</text>
+  </g>
+
+  <!-- ===================== BAND 2: presentation ===================== -->
+  <rect x="32" y="212" width="1376" height="86" rx="8" fill="#EDF0F5"/>
+  <text class="band-label" x="52" y="248">INTERFACE</text>
+  <text class="band-sub" x="52" y="268">TypeScript</text>
+
+  <g>
+    <rect x="228" y="226" width="796" height="58" rx="7" fill="#FFFFFF" stroke="#2B8A6E" stroke-width="1.6"/>
+    <text class="box-title" x="248" y="251">Next.js dashboard</text>
+    <text class="box-line" x="248" y="270">projects · suites · runs · cases · traces · findings · security evidence views</text>
+  </g>
+
+  <!-- ===================== BAND 3: API + workers ===================== -->
+  <rect x="32" y="314" width="1376" height="94" rx="8" fill="#F2F4F8"/>
+  <text class="band-label" x="52" y="350">API &amp; WORKERS</text>
+  <text class="band-sub" x="52" y="370">Python 3.12</text>
+
+  <g>
+    <rect x="228" y="328" width="386" height="66" rx="7" fill="#FFFFFF" stroke="#2B8A6E" stroke-width="1.6"/>
+    <text class="box-title" x="248" y="354">FastAPI</text>
+    <text class="box-line" x="248" y="373">auth &amp; org scoping · scenario/suite CRUD</text>
+    <text class="box-line" x="248" y="389">run submission · immutable run snapshots</text>
+  </g>
+  <g>
+    <rect x="638" y="328" width="386" height="66" rx="7" fill="#FFFFFF" stroke="#2B8A6E" stroke-width="1.6"/>
+    <text class="box-title" x="658" y="354">ARQ async workers</text>
+    <text class="box-line" x="658" y="373">bounded concurrency · per-case progress</text>
+    <text class="box-line" x="658" y="389">durable checkpointing · resume</text>
+  </g>
+
+  <!-- ===================== BAND 4: orchestration ===================== -->
+  <rect x="32" y="424" width="1376" height="86" rx="8" fill="#EDF0F5"/>
+  <text class="band-label" x="52" y="460">ORCHESTRATION</text>
+  <text class="band-sub" x="52" y="480">LangGraph</text>
+
+  <g>
+    <rect x="228" y="438" width="386" height="58" rx="7" fill="#FFFFFF" stroke="#7048E8" stroke-width="1.6"/>
+    <text class="box-title" x="248" y="463">LangGraph case graph</text>
+    <text class="box-line" x="248" y="482">per-case execution, evaluator flow, retries</text>
+  </g>
+  <g>
+    <rect x="638" y="438" width="386" height="58" rx="7" fill="#FFFFFF" stroke="#7048E8" stroke-width="1.6"/>
+    <text class="box-title" x="658" y="463">Agent adapters</text>
+    <text class="box-line" x="658" y="482">framework-neutral SDK · Generic HTTP contract</text>
+  </g>
+
+  <!-- ===================== BAND 5: evaluation & security ===================== -->
+  <rect x="32" y="526" width="1376" height="130" rx="8" fill="#F2F4F8"/>
+  <text class="band-label" x="52" y="562">EVALUATION &amp;</text>
+  <text class="band-label" x="52" y="582">SECURITY</text>
+  <text class="band-sub" x="52" y="602">deterministic first</text>
+
+  <g>
+    <rect x="228" y="540" width="250" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="246" y="561">Deterministic evaluators</text>
+    <text class="box-line" x="246" y="578">outcome · tool · arguments · budgets</text>
+  </g>
+  <g>
+    <rect x="493" y="540" width="250" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="511" y="561">RAG evaluation</text>
+    <text class="box-line" x="511" y="578">recall@k · MRR · nDCG · citations</text>
+  </g>
+  <g>
+    <rect x="758" y="540" width="266" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="776" y="561">Tool gateway + policy engine</text>
+    <text class="box-line" x="776" y="578">schema · authz · side effects · receipts</text>
+  </g>
+  <g>
+    <rect x="228" y="598" width="250" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="246" y="619">MCP inventory inspection</text>
+    <text class="box-line" x="246" y="636">tool pinning · capability drift</text>
+  </g>
+  <g>
+    <rect x="493" y="598" width="250" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="511" y="619">Trace detector</text>
+    <text class="box-line" x="511" y="636">no import edge into enforcement</text>
+  </g>
+  <g>
+    <rect x="758" y="598" width="266" height="48" rx="7" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/>
+    <text class="box-title" x="776" y="619">Verdicts &amp; release gating</text>
+    <text class="box-line" x="776" y="636">PASS / WARN / BLOCK with evidence</text>
+  </g>
+
+  <!-- ===================== BAND 6: benchmark suites ===================== -->
+  <rect x="32" y="672" width="1376" height="94" rx="8" fill="#EDF0F5"/>
+  <text class="band-label" x="52" y="708">BENCHMARK</text>
+  <text class="band-label" x="52" y="728">SUITES</text>
+  <text class="band-sub" x="52" y="748">frozen corpora</text>
+
+  <g>
+    <rect x="228" y="686" width="250" height="66" rx="7" fill="#FFFFFF" stroke="#9B2C4A" stroke-width="1.6"/>
+    <text class="box-title" x="246" y="710">security-lab-v1</text>
+    <text class="box-line" x="246" y="728">deterministic policy conformance</text>
+    <text class="box-line" x="246" y="744">65 violations · 13 controls</text>
+  </g>
+  <g>
+    <rect x="493" y="686" width="250" height="66" rx="7" fill="#FFFFFF" stroke="#9B2C4A" stroke-width="2.4"/>
+    <text class="box-title" x="511" y="710">security-real-agent-v1</text>
+    <text class="box-line" x="511" y="728">real-model red team · 48 attacks</text>
+    <text class="box-line" x="511" y="744">40 benign controls · FULL-2 baseline</text>
+  </g>
+  <g>
+    <rect x="758" y="686" width="266" height="66" rx="7" fill="#FFFFFF" stroke="#9B2C4A" stroke-width="1.6"/>
+    <text class="box-title" x="776" y="710">langgraph-support-v1</text>
+    <text class="box-line" x="776" y="728">external task-quality benchmark</text>
+    <text class="box-line" x="776" y="744">100 executions · audited</text>
+  </g>
+
+  <!-- ===================== BAND 7: data ===================== -->
+  <rect x="32" y="782" width="1376" height="94" rx="8" fill="#F2F4F8"/>
+  <text class="band-label" x="52" y="818">DATA &amp; STATE</text>
+  <text class="band-sub" x="52" y="838">Postgres is source of truth</text>
+
+  <g>
+    <rect x="228" y="796" width="186" height="66" rx="7" fill="#FFFFFF" stroke="#1D6FA3" stroke-width="1.6"/>
+    <text class="box-title" x="246" y="820">PostgreSQL</text>
+    <text class="box-line" x="246" y="838">runs, traces, findings</text>
+    <text class="box-line" x="246" y="854">Alembic migrations</text>
+  </g>
+  <g>
+    <rect x="429" y="796" width="186" height="66" rx="7" fill="#FFFFFF" stroke="#1D6FA3" stroke-width="1.6"/>
+    <text class="box-title" x="447" y="820">Redis</text>
+    <text class="box-line" x="447" y="838">ARQ job queue</text>
+    <text class="box-line" x="447" y="854">cache</text>
+  </g>
+  <g>
+    <rect x="630" y="796" width="186" height="66" rx="7" fill="#FFFFFF" stroke="#1D6FA3" stroke-width="1.6"/>
+    <text class="box-title" x="648" y="820">Qdrant</text>
+    <text class="box-line" x="648" y="838">dense + sparse vectors</text>
+    <text class="box-line" x="648" y="854">reranking</text>
+  </g>
+  <g>
+    <rect x="831" y="796" width="193" height="66" rx="7" fill="#FFFFFF" stroke="#1D6FA3" stroke-width="1.6"/>
+    <text class="box-title" x="849" y="820">Artifact store</text>
+    <text class="box-line" x="849" y="838">immutable run evidence</text>
+    <text class="box-line" x="849" y="854">SHA-256 manifests</text>
+  </g>
+
+  <!-- ===================== BAND 8: observability & platform ===================== -->
+  <rect x="32" y="892" width="1376" height="94" rx="8" fill="#EDF0F5"/>
+  <text class="band-label" x="52" y="928">PLATFORM &amp;</text>
+  <text class="band-label" x="52" y="948">TELEMETRY</text>
+
+  <g>
+    <rect x="228" y="906" width="186" height="66" rx="7" fill="#FFFFFF" stroke="#8A6D1F" stroke-width="1.6"/>
+    <text class="box-title" x="246" y="930">Langfuse</text>
+    <text class="box-line" x="246" y="948">optional, best effort</text>
+    <text class="box-line" x="246" y="964">never affects verdicts</text>
+  </g>
+  <g>
+    <rect x="429" y="906" width="186" height="66" rx="7" fill="url(#planned)" stroke="#8A6D1F" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text class="box-title" x="447" y="930">MLflow</text>
+    <text class="tag" x="447" y="948" fill="#8A6D1F">PLANNED</text>
+    <text class="box-line" x="447" y="964">experiment tracking</text>
+  </g>
+  <g>
+    <rect x="630" y="906" width="186" height="66" rx="7" fill="#FFFFFF" stroke="#495057" stroke-width="1.6"/>
+    <text class="box-title" x="648" y="930">Docker Compose</text>
+    <text class="box-line" x="648" y="948">reproducible local stack</text>
+    <text class="box-line" x="648" y="964">pinned services</text>
+  </g>
+  <g>
+    <rect x="831" y="906" width="90" height="66" rx="7" fill="#FFFFFF" stroke="#495057" stroke-width="1.6"/>
+    <text class="box-title" x="847" y="930">GitHub</text>
+    <text class="box-title" x="847" y="948">Actions</text>
+    <text class="box-line" x="847" y="964">CI gates</text>
+  </g>
+  <g>
+    <rect x="934" y="906" width="90" height="66" rx="7" fill="url(#planned)" stroke="#495057" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text class="box-title" x="950" y="930">Managed</text>
+    <text class="box-title" x="950" y="948">cloud</text>
+    <text class="tag" x="950" y="964" fill="#495057">TARGET</text>
+  </g>
+
+  <!-- ===================== SIDEBAR: systems under test ===================== -->
+  <rect x="1060" y="424" width="330" height="342" rx="9" fill="#FFFFFF" stroke="#9B2C4A" stroke-width="1.8" stroke-dasharray="9 5"/>
+  <text class="band-label" x="1082" y="456" fill="#9B2C4A">SYSTEMS UNDER TEST</text>
+  <text class="band-sub" x="1082" y="476">external to Axiom. Adapters drive them; only raw</text>
+  <text class="band-sub" x="1082" y="492">traces come back. Axiom never owns their tool layer.</text>
+
+  <g>
+    <rect x="1082" y="508" width="286" height="72" rx="7" fill="#FDF7F9" stroke="#9B2C4A" stroke-width="1.4"/>
+    <text class="box-title" x="1100" y="532">Pinned LangGraph support agent</text>
+    <text class="box-line" x="1100" y="550">third-party, commit-pinned</text>
+    <text class="box-line" x="1100" y="566">per-file SHA-256 verified</text>
+  </g>
+  <g>
+    <rect x="1082" y="592" width="286" height="72" rx="7" fill="#FDF7F9" stroke="#9B2C4A" stroke-width="1.4"/>
+    <text class="box-title" x="1100" y="616">Local Ollama model</text>
+    <text class="box-line" x="1100" y="634">llama3.1 8B · Q4_K_M</text>
+    <text class="box-line" x="1100" y="650">digest recorded per run</text>
+  </g>
+  <g>
+    <rect x="1082" y="676" width="286" height="72" rx="7" fill="#FDF7F9" stroke="#9B2C4A" stroke-width="1.4"/>
+    <text class="box-title" x="1100" y="700">Any Generic HTTP agent</text>
+    <text class="box-line" x="1100" y="718">framework-neutral contract</text>
+    <text class="box-line" x="1100" y="734">observation only, no prevention</text>
+  </g>
+
+  <!-- ===================== FLOW ARROWS ===================== -->
+  <g stroke="#8A94A3" stroke-width="1.6" fill="none" marker-end="url(#arrow)">
+    <path d="M626 180 L626 226"/>
+    <path d="M626 284 L626 328"/>
+    <path d="M421 394 L421 438"/>
+    <path d="M831 394 L831 438"/>
+    <path d="M421 496 L421 540"/>
+    <path d="M626 656 L626 686"/>
+    <path d="M626 752 L626 796"/>
+  </g>
+  <!-- adapters reach out to the external targets and the observations come back -->
+  <g stroke="#9B2C4A" stroke-width="1.8" fill="none" stroke-dasharray="7 4">
+    <path d="M1024 467 L1060 467" marker-end="url(#arrow-ext)"/>
+    <path d="M1060 700 L1024 700" marker-end="url(#arrow-ext)"/>
+  </g>
+
+  <!-- ===================== LEGEND ===================== -->
+  <g>
+    <rect x="1060" y="796" width="330" height="208" rx="9" fill="#F7F8FB" stroke="#DEE3EA"/>
+    <text class="band-label" x="1082" y="826">LEGEND</text>
+
+    <rect x="1082" y="842" width="26" height="16" rx="3" fill="#FFFFFF" stroke="#2F3E4E" stroke-width="1.6"/>
+    <text class="legend" x="1118" y="855">implemented and exercised today</text>
+
+    <rect x="1082" y="868" width="26" height="16" rx="3" fill="url(#planned)" stroke="#2F3E4E" stroke-width="1.6" stroke-dasharray="5 3"/>
+    <text class="legend" x="1118" y="881">planned or targeted, not built</text>
+
+    <line x1="1082" y1="902" x2="1108" y2="902" stroke="#8A94A3" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text class="legend" x="1118" y="907">request / execution flow</text>
+
+    <line x1="1082" y1="926" x2="1108" y2="926" stroke="#9B2C4A" stroke-width="1.8" stroke-dasharray="5 3" marker-end="url(#arrow-ext)"/>
+    <text class="legend" x="1118" y="931">boundary to an external system</text>
+
+    <text class="caption" x="1082" y="958">Prevention needs a host-owned executor.</text>
+    <text class="caption" x="1082" y="976">Against external agents Axiom measures,</text>
+    <text class="caption" x="1082" y="994">it does not block.</text>
+  </g>
+
+  <text class="caption" x="40" y="1032">Baseline evidence: security-real-agent-v1 FULL-2 — 88 cases, 43 scorable attacks, attack success 0.6047, 40/40 benign controls safe, 0 runtime failures.</text>
+  <text class="caption" x="40" y="1054">Every number is recomputable from the committed cases.jsonl and matches its SHA-256 manifest. See docs/security-real-agent-v1-baseline.md.</text>
+</svg>
