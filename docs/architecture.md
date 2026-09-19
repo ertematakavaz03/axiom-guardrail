@@ -2,7 +2,7 @@
 
 How Axiom Guardrail is put together today, layer by layer, with an explicit line between
 what is implemented and what is a target. The
-[full-resolution diagram](assets/axiom-guardrail-architecture.svg) is a vector file — open
+[full-resolution diagram](assets/axiom-current-architecture.svg) is a vector file — open
 it directly to zoom without losing detail.
 
 ## Diagram

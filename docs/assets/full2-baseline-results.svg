@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="'Segoe UI',Inter,'Helvetica Neue',Arial,sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">security-real-agent-v1 FULL-2 baseline results</title>
+  <desc id="d">Six independent, overlapping measurements from the FULL-2 run. Attack-side: attack success 60.47 percent (26 of 43), unsafe action attempted 69.77 percent (30 of 43), agent influence 88.37 percent (38 of 43). Higher-is-better: attack rejection 11.63 percent (5 of 43), benign safe behaviour 100 percent (40 of 40), runtime completion 100 percent (88 of 88). These metrics overlap and are not parts of one 100 percent total.</desc>
+
+  <defs>
+    <style>
+      .h1    { font-size: 25px; font-weight: 700; fill: #0b0b0b; }
+      .h2    { font-size: 14.5px; fill: #52514e; }
+      .warn  { font-size: 14px; font-weight: 650; fill: #7a3b12; }
+      .grp   { font-size: 13px; font-weight: 700; letter-spacing: .07em; fill: #52514e; }
+      .lbl   { font-size: 15.5px; fill: #0b0b0b; }
+      .den   { font-size: 12.5px; fill: #6b6a66; }
+      .val   { font-size: 17px; font-weight: 700; fill: #0b0b0b; }
+      .tick  { font-size: 11.5px; fill: #8a8983; }
+      .foot  { font-size: 12.5px; fill: #52514e; }
+    </style>
+  </defs>
+
+  <!-- the figure carries its own light surface so it reads on light and dark GitHub themes -->
+  <rect width="1200" height="700" fill="#fcfcfb"/>
+  <rect x="0.5" y="0.5" width="1199" height="699" fill="none" stroke="#e2e1dc"/>
+
+  <text class="h1" x="44" y="50">security-real-agent-v1 — FULL-2 baseline</text>
+  <text class="h2" x="44" y="76">Raw reference-agent baseline: pinned third-party LangGraph support agent on local llama3.1 8B (Q4_K_M). 88 cases, 0 runtime failures.</text>
+
+  <rect x="44" y="94" width="1112" height="34" rx="5" fill="#fdf3e6" stroke="#e8c79a"/>
+  <text class="warn" x="60" y="116">These six metrics measure different things and overlap. They are NOT parts of one 100% total, and they do not sum to 100%.</text>
+
+  <!-- gridlines: 0 / 25 / 50 / 75 / 100, bar track x=470..1090 -->
+  <g stroke="#e8e7e2" stroke-width="1">
+    <line x1="470" y1="176" x2="470" y2="600"/>
+    <line x1="625" y1="176" x2="625" y2="600"/>
+    <line x1="780" y1="176" x2="780" y2="600"/>
+    <line x1="935" y1="176" x2="935" y2="600"/>
+    <line x1="1090" y1="176" x2="1090" y2="600"/>
+  </g>
+  <g class="tick" text-anchor="middle" fill="#8a8983">
+    <text x="470" y="620">0%</text>
+    <text x="625" y="620">25%</text>
+    <text x="780" y="620">50%</text>
+    <text x="935" y="620">75%</text>
+    <text x="1090" y="620">100%</text>
+  </g>
+
+  <!-- ===== GROUP A: attack-side, lower is better ===== -->
+  <text class="grp" x="44" y="168">▼  ATTACK-SIDE — LOWER IS BETTER</text>
+  <text class="den" x="330" y="168">denominator: 43 scored attack executions</text>
+
+  <!-- attack success 60.47% -> 470 + 0.6047*620 = 844.9 -->
+  <g>
+    <text class="lbl" x="44" y="202">Attack success</text>
+    <text class="den" x="44" y="220">26 of 43</text>
+    <rect x="470" y="186" width="375" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="859" y="206">60.47%</text>
+  </g>
+  <!-- unsafe action attempted 69.77% -> 470 + 432.6 = 902.6 -->
+  <g>
+    <text class="lbl" x="44" y="262">Unsafe action attempted</text>
+    <text class="den" x="44" y="280">30 of 43</text>
+    <rect x="470" y="246" width="433" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="917" y="266">69.77%</text>
+  </g>
+  <!-- agent influence 88.37% -> 470 + 547.9 = 1017.9 -->
+  <g>
+    <text class="lbl" x="44" y="322">Agent influenced by attack</text>
+    <text class="den" x="44" y="340">38 of 43</text>
+    <rect x="470" y="306" width="548" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="1032" y="326">88.37%</text>
+  </g>
+
+  <line x1="44" y1="364" x2="1156" y2="364" stroke="#e2e1dc"/>
+
+  <!-- ===== GROUP B: higher is better ===== -->
+  <text class="grp" x="44" y="398">▲  HIGHER IS BETTER</text>
+
+  <!-- attack rejection 11.63% -> 470 + 72.1 = 542.1 -->
+  <g>
+    <text class="lbl" x="44" y="432">Attack rejected by agent</text>
+    <text class="den" x="44" y="450">5 of 43 scored attacks</text>
+    <rect x="470" y="416" width="72" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="556" y="436">11.63%</text>
+  </g>
+  <!-- benign safe 100% -->
+  <g>
+    <text class="lbl" x="44" y="492">Benign controls safe</text>
+    <text class="den" x="44" y="510">40 of 40 benign controls</text>
+    <rect x="470" y="476" width="620" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="1104" y="496">100%</text>
+  </g>
+  <!-- runtime completion 100% -->
+  <g>
+    <text class="lbl" x="44" y="552">Runtime completion</text>
+    <text class="den" x="44" y="570">88 of 88 cases, 0 runtime failures</text>
+    <rect x="470" y="536" width="620" height="26" rx="4" fill="#2a78d6"/>
+    <text class="val" x="1104" y="556">100%</text>
+  </g>
+
+  <line x1="44" y1="646" x2="1156" y2="646" stroke="#e2e1dc"/>
+  <text class="foot" x="44" y="668">Measured result, not an Axiom defence figure: this describes how the tested reference agent behaved, before any Axiom hardening was applied.</text>
+  <text class="foot" x="44" y="686">5 extraction-objective attacks were held for manual review and excluded from the 43-case denominator. Every value recomputes from the committed cases.jsonl.</text>
+</svg>
