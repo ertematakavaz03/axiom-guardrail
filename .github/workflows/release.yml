@@ -1,0 +1,57 @@
+name: Release gate
+
+# The gate that decides whether a tagged candidate ships. It re-runs the deterministic
+# security evidence and then asks services.release_gate for a machine-readable verdict
+# against the approved baseline.
+#
+# A BLOCK fails the job. That is the whole mechanism: the gate's exit code is the release
+# decision, and no composite score can override a safety reason code.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Path to the candidate summary.json
+        required: true
+        type: string
+
+jobs:
+  gate:
+    name: Evaluate release candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev]"
+
+      - name: Lint, types and full deterministic suite
+        run: |
+          ruff format --check .
+          ruff check .
+          mypy apps services packages demos
+          pytest tests/unit tests/golden tests/benchmarks -q
+
+      - name: Security-critical suite
+        # Separated so a release blocked on safety is legible at a glance in the log.
+        run: |
+          pytest tests/unit/test_runtime_enforcement.py tests/unit/test_runtime_egress.py \
+                 tests/unit/test_mediated_agent.py tests/unit/test_runtime_antioverfit.py \
+                 tests/unit/test_release_gate.py -q
+
+      - name: Release gate verdict
+        run: |
+          python -m services.release_gate \
+            --candidate "${{ inputs.candidate || 'benchmarks/candidates/latest/summary.json' }}" \
+            --baseline benchmarks/baselines/security-real-agent-v1.json \
+            --thresholds config/release-gate.json \
+            --output gate.json
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-verdict
+          path: gate.json
+          retention-days: 90

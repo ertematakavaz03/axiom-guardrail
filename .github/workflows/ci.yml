@@ -3,7 +3,7 @@ name: Axiom Guardrail CI
 on:
   pull_request:
   push:
-    branches: [main, master, phase3/security-redteam-mcp]
+    branches: [main, master, phase4/runtime-enforcement-ci]
 
 jobs:
   backend:
@@ -17,6 +17,41 @@ jobs:
       - run: ruff check .
       - run: mypy apps services packages demos
       - run: pytest tests/unit tests/golden tests/benchmarks -q
+
+  security:
+    name: Deterministic security enforcement
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev]"
+      # The runtime enforcement layer, its abuse coverage, and the mandatory audit that
+      # proves enforcement cannot see how it is scored. Named explicitly so a failure
+      # here is unmistakable in the checks list.
+      - name: Runtime enforcement and policy abuse suite
+        run: >-
+          pytest
+          tests/unit/test_runtime_enforcement.py
+          tests/unit/test_runtime_egress.py
+          tests/unit/test_mediated_agent.py
+          tests/unit/test_security_core.py
+          tests/unit/test_security_hardening.py
+          tests/unit/test_tool_gateway.py
+          tests/unit/test_trace_detector.py
+          -q
+      - name: Anti-overfitting audit
+        run: pytest tests/unit/test_runtime_antioverfit.py -q
+      - name: Release gate
+        run: pytest tests/unit/test_release_gate.py -q
+      # A grep-level backstop for the audit above: production enforcement source must
+      # not contain a benchmark identifier even in a comment.
+      - name: No benchmark identifiers in runtime enforcement source
+        run: |
+          if grep -rnE '\brs[ab]-[0-9]{3}\b' services/security/runtime.py services/security/egress.py demos/mediated_agent/; then
+            echo "benchmark scenario id found in runtime enforcement source"
+            exit 1
+          fi
 
   frontend:
     runs-on: ubuntu-latest

@@ -1,0 +1,85 @@
+name: Nightly security regression
+
+# The broad, slower suite. It runs on a schedule rather than per commit because the point
+# is to catch drift over time, not to gate a single change — and because a pipeline that
+# takes half an hour on every push stops being read.
+#
+# What it deliberately does NOT run: the 88-case real-agent security benchmark. That needs
+# a local Ollama and roughly fifty minutes of model time, and it is a deliberate,
+# operator-run measurement with its own artifact directory, not something to fire
+# unattended against a hosted runner.
+
+on:
+  schedule:
+    # 03:17 UTC: off the hour, so it does not queue behind everyone else's midnight cron.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  full-suite:
+    name: Full deterministic suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: agentarena_test
+          POSTGRES_USER: agentarena
+          POSTGRES_PASSWORD: agentarena
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agentarena -d agentarena_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      qdrant:
+        image: qdrant/qdrant:v1.15.4
+        ports: ["6333:6333"]
+    env:
+      AGENTARENA_DATABASE_URL: postgresql+asyncpg://agentarena:agentarena@localhost:5432/agentarena_test
+      AGENTARENA_REDIS_URL: redis://localhost:6379/0
+      AGENTARENA_QDRANT_URL: http://localhost:6333
+      AGENTARENA_QDRANT_COLLECTION_PREFIX: agentarena_test
+      AGENTARENA_JWT_SECRET: integration-only-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev]"
+      - run: alembic upgrade head
+      - name: Unit, golden and benchmark suites
+        run: pytest tests/unit tests/golden tests/benchmarks -q --junitxml=reports/deterministic.xml
+      - name: Integration suite
+        run: pytest tests/integration -q -m integration --junitxml=reports/integration.xml
+      - name: Verify the frozen benchmark methodology is unchanged
+        # The baseline's meaning depends on these files. A nightly check catches an
+        # accidental edit long before someone tries to compare a run against it.
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, sys
+          manifest = pathlib.Path(
+              "benchmarks/results/security-real-agent-v1/20260919-full-2/artifacts-sha256.json"
+          )
+          if not manifest.is_file():
+              print("baseline manifest missing"); sys.exit(1)
+          pins = json.loads(manifest.read_text(encoding="utf-8"))
+          bad = []
+          for name, expected in pins.items():
+              target = manifest.parent / name
+              actual = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
+              if actual != expected:
+                  bad.append(f"{name}: {actual} != {expected}")
+          if bad:
+              print("FULL-2 baseline artifacts have changed:"); print("\n".join(bad)); sys.exit(1)
+          print("FULL-2 baseline artifacts verify")
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-reports
+          path: reports/
+          retention-days: 14

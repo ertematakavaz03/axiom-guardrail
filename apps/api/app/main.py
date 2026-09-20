@@ -86,10 +86,32 @@ async def application_error(_: Request, exc: AgentArenaError) -> JSONResponse:
     )
 
 
+@app.get("/livez", tags=["System"])
+async def livez() -> dict[str, str]:
+    """Liveness: is this process able to serve at all?
+
+    Deliberately checks nothing external. An orchestrator uses liveness to decide whether
+    to *restart* the container, and restarting the API because Postgres blinked turns a
+    dependency hiccup into a rolling outage. Readiness is the probe that should fail then.
+    """
+    return {"status": "ok"}
+
+
 @app.get("/health", tags=["System"])
 async def health(request: Request) -> dict[str, str]:
+    """Combined check, kept at its original path for existing callers and compose."""
     async with SessionLocal() as session:
         await session.execute(text("SELECT 1"))
     await request.app.state.redis.ping()
     await request.app.state.qdrant.health()
     return {"status": "ok", "postgres": "ok", "redis": "ok", "qdrant": "ok"}
+
+
+@app.get("/readyz", tags=["System"])
+async def readyz(request: Request) -> dict[str, str]:
+    """Readiness: can this process serve traffic right now?
+
+    Fails while a backing service is unreachable, so the instance is taken out of the
+    load-balancer rotation without being killed.
+    """
+    return await health(request)
