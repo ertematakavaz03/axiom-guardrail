@@ -18,30 +18,22 @@ python -c "from pathlib import Path; from demos.security_real_agent.report impor
 Artifacts are immutable once written. A corrected expectation is recorded as a new run
 directory plus a dated defect note, never by editing a previous run.
 
-`prevention_rate` is `null` in every run of this suite by design: the target is a
-third-party agent that owns its own tool layer, so no trusted gateway receipt can exist.
+## Run index
 
-## Runs
+| Run | Target | Profile | Attack success | Notes |
+|---|---|---|---:|---|
+| `20260919-pilot` … `20260919-pilot-3` | raw pinned agent | pilot (12) | — | methodology development; see the defect ledger |
+| `20260919-full-2` | **raw pinned agent** | full (88) | **60.47%** | The immutable raw baseline. Nothing enforces anything. |
+| `20260920-phase4-hardened-1` | **Axiom-mediated agent** | full (88) | **9.09%** | Same corpus, model, prompt and tools; tool execution routed through the Phase 4 enforcement boundary. |
 
-**`20260919-full-2` is the primary reportable baseline.** The three pilots are retained as
-methodology evidence, not as results: each is superseded, and quoting a pilot rate as a
-benchmark figure is a reporting error.
+Both full runs are preserved. Neither supersedes the other: they measure two different
+*deployment architectures* against one frozen methodology, and the comparison is only
+meaningful while both sets of bytes exist.
 
-| Run | Profile | Cases | Role |
-|---|---|---|---|
-| `20260919-pilot` | pilot | 12 | superseded. Pre-correction evidence for defects D-001...D-007 (runtime provenance, prediction-vs-adjudication conflation, digest prefix overstatement). |
-| `20260919-pilot-2` | pilot | 12 | superseded. First run with markers configured; exposed D-012 (a marker miss scored as a defence) and D-013 (marker provenance flattened to nulls). Preserved as evidence of the flawed classifier state. |
-| `20260919-pilot-3` | pilot | 12 | superseded. First run under the corrected classifier. Reported `attack_success_rate` 0.60 on a five-case denominator; reproduced the headline signal only. |
-| **`20260919-full-2`** | **full** | **88** | **PRIMARY BASELINE.** 48 attacks / 40 benign controls, 43 scorable attacks, 0 runtime failures, `attack_success_rate` 0.6047, benign controls 40/40 safe. Full report: [docs/security-real-agent-v1-baseline.md](../../../docs/security-real-agent-v1-baseline.md) |
-
-`20260919-full-1` does not exist as a result: that attempt blocked indefinitely on a chunked
-LangGraph response and produced no artifacts. It is recorded as D-014 in the
-[defect ledger](../../../docs/security-real-agent-v1-defects.md), and no results were
-manufactured for it.
-
-A completed run also retains `checkpoint/`, whose `state.json` carries the methodology
-fingerprint the run executed under -- benchmark id, profile, corpus digest, schema version,
-extraction evidence policy, detector and shadow versions, marker provenance, case order,
-timeout policy and the methodology commit. A run still in flight is marked
-`PARTIAL_IN_PROGRESS_NOT_A_BENCHMARK_RESULT`; the four final artifacts appear only once the
-run reaches its terminal state, so a partial checkpoint can never be read as a result.
+`prevention_rate` is `null` in every run of this suite by design: the frozen suite has no
+trusted gateway receipts. In `20260920-phase4-hardened-1` this is a reporting artifact
+rather than a statement of fact — prevention demonstrably occurred (59 tool calls were
+denied before execution, visible in `cases.jsonl` as `status: "error"` with a policy
+reason code), but the frozen evaluator has no channel through which to record it and still
+reports `prevention_status: "N/A_no_host_owned_executor"`. The methodology was deliberately
+left unchanged rather than taught about the new target.
