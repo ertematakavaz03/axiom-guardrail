@@ -1,0 +1,7 @@
+{
+  "_comment": "LangGraph config for the Axiom-mediated benchmark target. Lives at the repository root, not beside the graph, because the CLI resolves 'dependencies' and graph paths relative to this file and the installable project root is here. Run: langgraph dev --config langgraph-mediated.json --port 8124. Requires AXIOM_UPSTREAM_SRC (the pinned upstream checkout) and AXIOM_ENFORCEMENT_MODE (enforce|shadow).",
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./demos/mediated_agent/graph.py:make_graph"
+  }
+}

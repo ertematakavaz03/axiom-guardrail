@@ -567,9 +567,12 @@ $env:AXIOM_UPSTREAM_SRC   = "<path to the langgraph-customer-support-agent check
 $env:AXIOM_ENFORCEMENT_MODE = "enforce"
 
 # 2. Serve the mediated graph from the upstream venv, with Axiom importable.
+#    The upstream venv already carries LangGraph, langgraph-cli and sentence-transformers.
+#    It does NOT carry jsonschema, which the policy engine needs, so install it once.
 & "$env:AXIOM_UPSTREAM_SRC\.venv312\Scripts\Activate.ps1"
+pip install jsonschema
 $env:PYTHONPATH = "<path to this repository>"
-langgraph dev --config demos\mediated_agent\langgraph.json --port 8124 --no-browser
+langgraph dev --config langgraph-mediated.json --port 8124 --no-browser
 
 # 3. In a second shell, run the frozen suite against it — nothing changes but --base-url
 python -m demos.security_real_agent.runner `
