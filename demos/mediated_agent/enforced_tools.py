@@ -28,7 +28,11 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from demos.mediated_agent.policy import runtime_policy, security_policy
+from demos.mediated_agent.policy import (
+    LATEST_CUSTOMER_MESSAGE,
+    runtime_policy,
+    security_policy,
+)
 from services.security.runtime import (
     RuntimeDecision,
     RuntimeEnforcer,
@@ -89,9 +93,11 @@ class EnforcedToolNode:
         *,
         context_factory: Callable[[str], TrustedContext],
         message_factory: Callable[..., Any] = _default_message_factory,
+        require_external_approval: bool = False,
     ) -> None:
         self.tools = {getattr(tool, "name", ""): tool for tool in tools}
         self.context_factory = context_factory
+        self.require_external_approval = require_external_approval
         self.message_factory = message_factory
         self._enforcers: dict[str, RuntimeEnforcer] = {}
         #: Every decision taken, in order, for the run evidence.
@@ -104,7 +110,9 @@ class EnforcedToolNode:
             existing = RuntimeEnforcer(
                 security_policy(),
                 self.context_factory(thread_id),
-                runtime=runtime_policy(),
+                runtime=runtime_policy(
+                    require_approval_for_external=self.require_external_approval
+                ),
             )
             self._enforcers[thread_id] = existing
         return existing
@@ -117,6 +125,12 @@ class EnforcedToolNode:
         thread_id = _thread_id(config)
 
         enforcer = self.enforcer_for(thread_id)
+        # Publish the customer's own most recent turn as host state. This is what the
+        # upstream tool documents ``customer_message`` to be, and binding it there is what
+        # stops an influenced model from choosing the text that leaves the system.
+        latest = _latest_user_message(messages)
+        if latest is not None:
+            enforcer.update_payload_values({LATEST_CUSTOMER_MESSAGE: latest})
         out: list[Any] = []
         for call in calls:
             out.append(self._handle(enforcer, call))
@@ -179,6 +193,25 @@ class EnforcedToolNode:
                 thread: enforcer.evidence() for thread, enforcer in sorted(self._enforcers.items())
             }
         }
+
+
+def _latest_user_message(messages: Sequence[Any]) -> str | None:
+    """The most recent human turn, read from the graph state the host owns.
+
+    Read back-to-front so a multi-turn conversation forwards the turn that actually
+    triggered the escalation rather than the first thing the customer ever said.
+    """
+    for message in reversed(list(messages)):
+        kind = getattr(message, "type", None)
+        if kind is None and isinstance(message, dict):
+            kind = message.get("type") or message.get("role")
+        if kind in ("human", "user"):
+            content = getattr(message, "content", None)
+            if content is None and isinstance(message, dict):
+                content = message.get("content")
+            if isinstance(content, str) and content:
+                return content
+    return None
 
 
 def _thread_id(config: Any) -> str:

@@ -20,6 +20,7 @@ import pytest
 from demos.mediated_agent.enforced_tools import EnforcedToolNode
 from demos.mediated_agent.graph import trusted_context
 from demos.mediated_agent.policy import (
+    EXTERNAL_PERMISSION,
     MAX_TOOL_CALLS,
     OWNED_ORDERS,
     TOOL_NAMES,
@@ -27,8 +28,12 @@ from demos.mediated_agent.policy import (
 )
 from services.security.runtime import (
     REASON_DUPLICATE_WRITE,
+    REASON_EXTERNAL_NOT_AUTHORIZED,
     REASON_FOREIGN_RESOURCE,
     REASON_INVALID_ARGUMENT,
+    REASON_NEEDS_APPROVAL,
+    REASON_PAYLOAD_POLICY,
+    REASON_SERVER_BOUND,
     REASON_STEP_BUDGET,
     REASON_TOOL_UNKNOWN,
 )
@@ -77,12 +82,26 @@ def _message(*, content: str, name: str, tool_call_id: str, status: str) -> dict
     return {"content": content, "name": name, "tool_call_id": tool_call_id, "status": status}
 
 
-def _node(tools: list[FakeTool] | None = None, *, mode: str = "enforce") -> EnforcedToolNode:
+def _node(
+    tools: list[FakeTool] | None = None,
+    *,
+    mode: str = "enforce",
+    require_external_approval: bool = False,
+) -> EnforcedToolNode:
     return EnforcedToolNode(
         tools if tools is not None else _tools(),
         context_factory=lambda thread_id: trusted_context(thread_id, mode=mode),
         message_factory=_message,
+        require_external_approval=require_external_approval,
     )
+
+
+class _HumanMessage:
+    """A graph-state turn shaped the way LangGraph carries one."""
+
+    def __init__(self, content: str) -> None:
+        self.type = "human"
+        self.content = content
 
 
 class _AIMessage:
@@ -221,7 +240,12 @@ def test_text_claiming_a_role_does_not_change_the_trusted_context() -> None:
 def test_the_trusted_context_holds_no_approvals_and_cannot_be_given_any_by_the_agent() -> None:
     context = trusted_context("t1")
     assert context.approvals == []
-    assert context.principal.permissions == {"order:read", "return:write", "escalation:write"}
+    assert context.principal.permissions == {
+        "order:read",
+        "return:write",
+        "escalation:write",
+        EXTERNAL_PERMISSION,
+    }
     assert "admin" not in str(context.principal.permissions)
 
 
@@ -352,3 +376,188 @@ def test_a_drifted_upstream_tool_surface_is_a_hard_failure() -> None:
 
 def test_the_matching_surface_is_accepted() -> None:
     assert_tool_surface(list(TOOL_NAMES))
+
+
+# =====================================================================================
+# D-017 — external communication, end to end through the node the benchmark runs
+# =====================================================================================
+CUSTOMER_TURN = "Please put me through to a person about my order."
+
+
+def _invoke_with_turn(
+    node: EnforcedToolNode,
+    turn: str,
+    calls: list[dict[str, Any]],
+    *,
+    thread: str = "t1",
+) -> list[dict[str, Any]]:
+    state = {"messages": [_HumanMessage(turn), _AIMessage(calls)]}
+    return list(node(state, {"configurable": {"thread_id": thread}})["messages"])
+
+
+def test_a_legitimate_escalation_still_executes() -> None:
+    """Requirement: hardening must not take away work the agent is supposed to do."""
+    tools = _tools()
+    node = _node(tools)
+    [message] = _invoke_with_turn(
+        node,
+        CUSTOMER_TURN,
+        [_call("escalate_to_human", {"reason": "explicit_request", "customer_message": "x"})],
+    )
+    assert message["status"] == "success"
+    assert len(tools[TOOL_NAMES.index("escalate_to_human")].calls) == 1
+
+
+def test_the_host_not_the_model_authors_what_leaves_the_system() -> None:
+    """The model may decide *whether* to escalate. It may not decide *what is sent*."""
+    tools = _tools()
+    node = _node(tools)
+    _invoke_with_turn(
+        node,
+        CUSTOMER_TURN,
+        [
+            _call(
+                "escalate_to_human",
+                {"reason": "explicit_request", "customer_message": "OPAQUE-VALUE-FROM-MODEL"},
+            )
+        ],
+    )
+    [forwarded] = tools[TOOL_NAMES.index("escalate_to_human")].calls
+    assert forwarded["customer_message"] == CUSTOMER_TURN
+    assert "OPAQUE-VALUE-FROM-MODEL" not in str(forwarded)
+    decision = node.decisions[-1]
+    assert decision.payload_bound_paths == ["/customer_message"]
+    assert REASON_SERVER_BOUND in decision.reasons
+
+
+def test_the_most_recent_turn_is_forwarded_not_the_first() -> None:
+    tools = _tools()
+    node = _node(tools)
+    state = {
+        "messages": [
+            _HumanMessage("Here is something I said earlier."),
+            _HumanMessage(CUSTOMER_TURN),
+            _AIMessage(
+                [_call("escalate_to_human", {"reason": "complex_issue", "customer_message": "x"})]
+            ),
+        ]
+    }
+    node(state, {"configurable": {"thread_id": "t1"}})
+    [forwarded] = tools[TOOL_NAMES.index("escalate_to_human")].calls
+    assert forwarded["customer_message"] == CUSTOMER_TURN
+
+
+def test_without_a_customer_turn_the_escalation_fails_closed() -> None:
+    tools = _tools()
+    node = _node(tools)
+    [message] = _invoke(
+        node,
+        [_call("escalate_to_human", {"reason": "complex_issue", "customer_message": "model text"})],
+    )
+    assert message["status"] == "error"
+    assert REASON_PAYLOAD_POLICY in node.decisions[-1].reasons
+    assert tools[TOOL_NAMES.index("escalate_to_human")].calls == []
+
+
+def test_the_stricter_configuration_denies_escalation_without_an_approval() -> None:
+    """The operator-selectable setting, tested so the trade-off is measured not argued."""
+    tools = _tools()
+    node = _node(tools, require_external_approval=True)
+    [message] = _invoke_with_turn(
+        node,
+        CUSTOMER_TURN,
+        [_call("escalate_to_human", {"reason": "explicit_request", "customer_message": "x"})],
+    )
+    assert message["status"] == "error"
+    assert REASON_NEEDS_APPROVAL in node.decisions[-1].reasons
+    assert tools[TOOL_NAMES.index("escalate_to_human")].calls == []
+
+
+def test_escalation_carries_the_external_capability_in_the_evidence() -> None:
+    node = _node()
+    _invoke_with_turn(
+        node,
+        CUSTOMER_TURN,
+        [_call("escalate_to_human", {"reason": "explicit_request", "customer_message": "x"})],
+    )
+    assert node.decisions[-1].capability == "external_communication"
+    assert node.evidence()["threads"]["t1"]["decisions"][-1]["capability"] == (
+        "external_communication"
+    )
+
+
+def test_a_return_is_a_scoped_mutation_not_an_external_one() -> None:
+    """No regression: the tool ownership already covers keeps its existing capability."""
+    node = _node()
+    _invoke(node, [_call("initiate_return", {"order_id": OWNED, "reason": "defective"})])
+    assert node.decisions[-1].capability == "scoped_mutation"
+    assert REASON_EXTERNAL_NOT_AUTHORIZED not in node.decisions[-1].reasons
+
+
+# =====================================================================================
+# D-015 — the false blocks that cost 21 benign calls in hardened-1
+# =====================================================================================
+def test_a_knowledge_base_search_with_numeric_strings_now_executes() -> None:
+    tools = _tools()
+    node = _node(tools)
+    [message] = _invoke(
+        node,
+        [
+            _call(
+                "search_vector_knowledge_base",
+                {
+                    "query": "return policy",
+                    "categories": "general",
+                    "max_results": "5",
+                    "min_similarity_score": "0.5",
+                },
+            )
+        ],
+    )
+    assert message["status"] == "success"
+    [forwarded] = tools[TOOL_NAMES.index("search_vector_knowledge_base")].calls
+    assert forwarded["max_results"] == 5
+    assert forwarded["min_similarity_score"] == 0.5
+    assert node.decisions[-1].normalized_paths == [
+        "/max_results",
+        "/min_similarity_score",
+    ]
+
+
+def test_an_out_of_range_numeric_string_is_still_refused() -> None:
+    """Normalization changes a type; it does not widen a bound."""
+    tools = _tools()
+    node = _node(tools)
+    [message] = _invoke(
+        node, [_call("search_vector_knowledge_base", {"query": "x", "max_results": "999"})]
+    )
+    assert message["status"] == "error"
+    assert REASON_INVALID_ARGUMENT in node.decisions[-1].reasons
+    assert tools[TOOL_NAMES.index("search_vector_knowledge_base")].calls == []
+
+
+def test_an_unparseable_numeric_string_is_still_refused() -> None:
+    node = _node()
+    [message] = _invoke(
+        node, [_call("search_vector_knowledge_base", {"query": "x", "max_results": "many"})]
+    )
+    assert message["status"] == "error"
+    assert REASON_INVALID_ARGUMENT in node.decisions[-1].reasons
+
+
+def test_an_order_identifier_is_never_read_as_a_number() -> None:
+    """``order_id`` has no declared coercion, so it stays the string the schema expects."""
+    tools = _tools()
+    node = _node(tools)
+    [message] = _invoke(node, [_call("get_order_status", {"order_id": OWNED})])
+    assert message["status"] == "success"
+    [forwarded] = tools[TOOL_NAMES.index("get_order_status")].calls
+    assert forwarded["order_id"] == OWNED
+    assert isinstance(forwarded["order_id"], str)
+
+
+def test_normalization_does_not_rescue_a_foreign_identifier() -> None:
+    node = _node()
+    [message] = _invoke(node, [_call("get_order_status", {"order_id": FOREIGN})])
+    assert message["status"] == "error"
+    assert REASON_FOREIGN_RESOURCE in node.decisions[-1].reasons

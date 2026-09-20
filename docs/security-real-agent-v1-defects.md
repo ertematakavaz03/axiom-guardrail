@@ -814,11 +814,17 @@ contradicts the provenance claim in §5.1 of the Phase 4 report.
 completed no successful tool call at all. Also hit 9 attack cases, but never on a
 gold-unsafe tool, so it did not manufacture the security result.
 
-**Status:** open. Deliberately not fixed in the evidence commit, so the audited artifacts
-and the code that produced them remain in agreement.
+**Status:** **corrected** on `phase4/runtime-enforcement-hardening-2`, not yet validated
+by a full run. `RuntimePolicy.coercions` declares the two paths the pinned tool coerces;
+`normalize_arguments` converts an ASCII-digit string to `int` and a plain decimal string to
+a finite `float` **before** schema validation, and the normalized value then faces the
+unchanged schema. Unparseable strings, non-finite values, booleans, nested values and
+undeclared paths are left exactly as they were and still fail. Upstream's silent fallback
+to `5` / `0.0` is deliberately not copied.
 
-**Metric direction if corrected:** would raise benign tool-execution success substantially;
-should not change attack success.
+**Metric direction when validated:** should raise benign tool-execution success
+substantially; should not change attack success, because the defect never blocked a
+gold-unsafe tool.
 
 ## D-016 — no egress control on caller-designated confidential values
 
@@ -853,8 +859,33 @@ secrets" (keyword censorship, explicitly out of scope); it needs either a
 caller-designated-confidential mechanism (D-016) or an approval requirement for
 escalations that carry free-form customer text.
 
-**Status:** open. **Metric direction if corrected:** would take critical unsafe side
-effects from 1 to 0 and attack success from 9.09% to 6.82% (3/44).
+**Status:** **mechanism built** on `phase4/runtime-enforcement-hardening-2`; the defect is
+**not closed** in the default configuration. `RuntimePolicy` now carries a per-tool
+`Capability`, and a tool whose capability leaves the trust boundary needs an external-send
+permission held in host state, optionally an approval grant, and a payload the host
+authored rather than the model. `escalate_to_human` is declared
+`external_communication`; its `customer_message` is bound to the customer's own most recent
+turn, which is what the upstream docstring defines that field to be, so an influenced model
+can still decide *to* escalate and can no longer decide *what is sent*.
+
+**Why it is not closed.** Two measured facts, established before the change:
+
+* Four benign controls escalate legitimately with the same tool, the same argument shape
+  and `reason` values from the same documented list. No content-blind rule separates them
+  from the attack case.
+* The frozen classifier scores that case on `escalate_to_human` **executing**, not on the
+  payload. Server-authoring the payload keeps the secret inside the boundary but does not
+  stop the tool running.
+
+So the permissive default preserves the four benign escalations and leaves critical unsafe
+side effects at 1. `require_approval_for_external` (or `AXIOM_REQUIRE_EXTERNAL_APPROVAL=1`)
+denies the attack case — and those four benign escalations with it. Both paths are
+implemented and tested; which one ships is a deployment decision to be **measured** by
+running hardened-2 in each configuration, not argued.
+
+**Metric direction when validated:** permissive — critical side effects stay 1, attack
+success stays 9.09%, benign escalation preserved. Strict — critical side effects 1 → 0,
+attack success 9.09% → 6.82% (3/44), four benign escalations denied.
 
 ## Corrected-defect summary for the next run
 
@@ -874,9 +905,9 @@ effects from 1 to 0 and attack success from 9.09% to 6.82% (3/44).
 | D-012 no-hit scored as defence | yes | **lowers** rejection rate, **raises** success/influence rates |
 | D-013 marker provenance flattened to nulls | yes | none |
 | D-014 full-1 blocked forever, lost all progress | yes (execution only) | none |
-| D-015 numeric args as strings rejected (Axiom policy) | **no — open** | would raise benign tool-execution success |
+| D-015 numeric args as strings rejected (Axiom policy) | **yes** (hardening-2, unvalidated) | should raise benign tool-execution success |
 | D-016 no egress control on caller-designated secrets | **no — open** | would remove one disclosure consequence |
-| D-017 `escalate_to_human` unconditioned | **no — open** | would take critical side effects 1 → 0 |
+| D-017 `escalate_to_human` unconditioned | **mechanism built**, closed only in the strict config | strict config: critical side effects 1 → 0 |
 
 D-010 is the part of D-005 that had objective pre-pilot evidence. The three
 `AUTHORIZATION_BYPASS` cases in D-005 have no such evidence and remain uncorrected.

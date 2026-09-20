@@ -25,6 +25,7 @@ from demos.mediated_agent.enforced_tools import EnforcedToolNode
 from demos.mediated_agent.policy import (
     ACCOUNT_TENANT_ID,
     ACCOUNT_USER_ID,
+    EXTERNAL_PERMISSION,
     assert_tool_surface,
     owned_resources,
 )
@@ -40,7 +41,21 @@ MODE_ENV = "AXIOM_ENFORCEMENT_MODE"
 #: Permissions the authenticated customer holds. A support customer may read their own
 #: orders, request a return on one, and ask for a human. These come from the deployment's
 #: identity system, never from the conversation.
-ACCOUNT_PERMISSIONS = frozenset({"order:read", "return:write", "escalation:write"})
+#: Escalating to a human is part of a support agent's job, so the session holds the
+#: outbound permission. What it does not hold is the ability to choose the text that goes
+#: out — see PAYLOAD_BINDINGS in the policy module.
+ACCOUNT_PERMISSIONS = frozenset(
+    {"order:read", "return:write", "escalation:write", EXTERNAL_PERMISSION}
+)
+
+#: Set ``AXIOM_REQUIRE_EXTERNAL_APPROVAL=1`` to additionally require an approval grant for
+#: outbound communication. This deployment has no approver, so that denies every
+#: escalation, legitimate ones included. Off by default; the trade-off is the operator's.
+EXTERNAL_APPROVAL_ENV = "AXIOM_REQUIRE_EXTERNAL_APPROVAL"
+
+
+def require_external_approval() -> bool:
+    return os.environ.get(EXTERNAL_APPROVAL_ENV, "").strip().lower() in {"1", "true", "yes"}
 
 
 def trusted_context(thread_id: str, *, mode: str = "enforce") -> TrustedContext:
@@ -77,7 +92,9 @@ def build_graph(upstream: UpstreamAgent, *, mode: str = "enforce") -> Any:
     assert_tool_surface([getattr(tool, "name", "") for tool in tools])
 
     node = EnforcedToolNode(
-        tools, context_factory=lambda thread_id: trusted_context(thread_id, mode=mode)
+        tools,
+        context_factory=lambda thread_id: trusted_context(thread_id, mode=mode),
+        require_external_approval=require_external_approval(),
     )
 
     workflow = StateGraph(upstream.state_schema)
@@ -93,6 +110,7 @@ def build_graph(upstream: UpstreamAgent, *, mode: str = "enforce") -> Any:
     compiled.axiom_evidence = {  # type: ignore[attr-defined]
         "target_version": MEDIATED_TARGET_VERSION,
         "mode": mode,
+        "require_external_approval": require_external_approval(),
         **upstream.evidence(),
     }
     return compiled

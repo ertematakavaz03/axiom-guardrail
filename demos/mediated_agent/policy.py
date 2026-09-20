@@ -15,13 +15,13 @@ provenance stated, precisely so a reader can audit it rather than take it on tru
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from services.security.models import SecurityPolicy, ToolRule
-from services.security.runtime import RuntimePolicy
+from services.security.runtime import Capability, RuntimePolicy
 
 #: Policy version recorded in every decision. Bumped when a clause below changes.
-MEDIATED_POLICY_VERSION = "mediated-support-1"
+MEDIATED_POLICY_VERSION = "mediated-support-2"
 
 #: The authenticated customer this deployment serves.
 ACCOUNT_USER_ID = "customer-1"
@@ -162,7 +162,52 @@ def security_policy() -> SecurityPolicy:
     )
 
 
-def runtime_policy() -> RuntimePolicy:
+#: The permission an authenticated support session holds to contact a human. A support
+#: agent whose job includes escalation must be able to escalate; the control that matters
+#: is not *whether* it may, but *what text* it is allowed to send (see PAYLOAD_BINDINGS).
+EXTERNAL_PERMISSION = "external:send"
+
+#: Key under which the host publishes the customer's most recent turn.
+LATEST_CUSTOMER_MESSAGE = "latest_customer_message"
+
+#: Capability per tool. Only one leaves the trust boundary: ``escalate_to_human`` hands
+#: content to a human support system. ``initiate_return`` changes a record the caller must
+#: own, which ownership binding already covers, so it stays a scoped mutation. Every other
+#: tool is a read and is derived automatically.
+TOOL_CAPABILITIES: dict[str, Capability] = {
+    "escalate_to_human": "external_communication",
+}
+
+#: Fields the host authors rather than the model. The upstream docstring defines
+#: ``customer_message`` as *"The most recent customer message that triggered escalation"* —
+#: a fact the host already holds and the model has no reason to compose. Binding it means
+#: an influenced model can still decide to escalate and cannot choose what is sent.
+PAYLOAD_BINDINGS: dict[str, dict[str, str]] = {
+    "escalate_to_human": {"/customer_message": LATEST_CUSTOMER_MESSAGE},
+}
+
+#: Numeric fields the pinned tool coerces from strings itself:
+#:
+#:     if isinstance(max_results, str):
+#:         max_results = int(max_results) if max_results.isdigit() else 5
+#:     if isinstance(min_similarity_score, str):
+#:         try:    min_similarity_score = float(min_similarity_score)
+#:         except ValueError: min_similarity_score = 0.0
+#:
+#: Refusing a form the callable accepts is over-enforcement; defect D-015 cost 21 benign
+#: calls in ``20260920-phase4-hardened-1``. Axiom converts the same two fields and then
+#: applies the unchanged schema, so the documented 1-10 and 0.0-1.0 bounds still hold.
+#: It does not copy upstream's silent fallback to 5 / 0.0 on an unparseable string: a
+#: default would hide the fact that an out-of-contract argument was proposed.
+ARGUMENT_COERCIONS: dict[str, dict[str, Literal["integer", "number"]]] = {
+    "search_vector_knowledge_base": {
+        "/max_results": "integer",
+        "/min_similarity_score": "number",
+    },
+}
+
+
+def runtime_policy(*, require_approval_for_external: bool = False) -> RuntimePolicy:
     """Per-principal resource ownership.
 
     Both tools that take an order identifier resolve it against the account fixture. A
@@ -173,6 +218,13 @@ def runtime_policy() -> RuntimePolicy:
     meaningful when the host has a real source of approvals; inventing one for a target
     with no authenticated approver would be theatre, and gating every write behind an
     approval that can never arrive would refuse legitimate work.
+
+    ``require_approval_for_external`` is the same decision for outbound communication, and
+    it is off by default for the same reason. This deployment has no approver, so turning
+    it on denies every escalation — including the legitimate ones, which are a real part of
+    a support agent's job. It is exposed as a parameter because the trade-off is a
+    deployment decision with a measurable cost on both sides, not something a policy module
+    should decide on the operator's behalf.
     """
     return RuntimePolicy(
         ownership_bindings={
@@ -180,6 +232,11 @@ def runtime_policy() -> RuntimePolicy:
             "initiate_return": {"/order_id": "order"},
         },
         approval_required_tools=[],
+        capabilities=dict(TOOL_CAPABILITIES),
+        external_permission=EXTERNAL_PERMISSION,
+        require_approval_for_external=require_approval_for_external,
+        payload_bindings={k: dict(v) for k, v in PAYLOAD_BINDINGS.items()},
+        coercions={k: dict(v) for k, v in ARGUMENT_COERCIONS.items()},
     )
 
 

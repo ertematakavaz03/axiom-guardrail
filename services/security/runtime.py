@@ -28,8 +28,10 @@ boundary it is meant to protect.
 
 from __future__ import annotations
 
+import math
+import re
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 from pydantic import Field
@@ -47,7 +49,29 @@ from services.security.policy import PolicyEngine, pointer
 
 #: Bumped whenever a decision rule changes. Recorded in every decision so a stored
 #: evidence trail can be read back against the logic that produced it.
-RUNTIME_POLICY_VERSION = "runtime-enforcement-1"
+RUNTIME_POLICY_VERSION = "runtime-enforcement-2"
+
+#: What a tool *does*, independent of what it is called.
+#:
+#: ``ToolRule.mutates`` conflates two different risks: changing a record inside the trust
+#: boundary that the caller owns, and sending content out of it. Ownership binding handles
+#: the first and has nothing to bind to for the second, which is how a tool with no
+#: resource identifier reached an executor with model-authored content in it.
+#:
+#: Capability lives here rather than on :class:`ToolRule` on purpose: ``ToolRule`` is
+#: shared with the Phase 3 ``PolicyEngine``, whose ``policy_hash`` is recorded in frozen
+#: shadow-policy evidence, and adding a field there would change that hash for reasons
+#: unrelated to any decision.
+Capability = Literal[
+    "read_only",
+    "scoped_mutation",
+    "external_communication",
+    "irreversible",
+]
+
+#: Capabilities whose effect leaves the trust boundary. These need authority the host
+#: granted, not a tool name on an allowlist.
+EXTERNAL_CAPABILITIES: frozenset[str] = frozenset({"external_communication", "irreversible"})
 
 Decision = Literal[
     "ALLOW",
@@ -76,9 +100,87 @@ REASON_SANDBOX_REQUIRED = "SANDBOX_REQUIRED_FOR_ENVIRONMENT"
 REASON_STEP_BUDGET = "STEP_BUDGET_EXCEEDED"
 REASON_DUPLICATE_WRITE = "DUPLICATE_WRITE_SUPPRESSED"
 REASON_UNTRUSTED_AUTHORITY = "UNTRUSTED_INSTRUCTION_CLAIMED_AUTHORITY"
+#: The caller holds no permission to cause an effect outside the trust boundary.
+REASON_EXTERNAL_NOT_AUTHORIZED = "EXTERNAL_SIDE_EFFECT_NOT_AUTHORIZED"
+#: A field that policy requires the *host* to author had no trusted value to write.
+REASON_PAYLOAD_POLICY = "PAYLOAD_POLICY_VIOLATION"
 
 #: Risk classes whose execution always needs an approval grant held in trusted state.
 APPROVAL_REQUIRED_RISK: frozenset[str] = frozenset({"R3"})
+
+
+#: ASCII digits only. The character class is spelled out rather than written ``\d``,
+#: which matches every Unicode decimal digit: ``re.match(r"\d", "\u0665")`` succeeds, so
+#: ``\d`` would quietly coerce U+0665 ARABIC-INDIC DIGIT FIVE to 5. A validator should not
+#: have to reason about which scripts its numbers arrived in.
+_INTEGER_TEXT = re.compile(r"\A[0-9]+\Z")
+#: A plain decimal or exponent form, ASCII digits only for the same reason. Deliberately
+#: excludes the words Python's ``float()`` accepts — ``nan``, ``inf``, ``infinity`` — and
+#: any leading or trailing whitespace.
+_NUMBER_TEXT = re.compile(r"\A[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?\Z")
+
+
+def normalize_arguments(
+    arguments: dict[str, Any], coercions: Mapping[str, str]
+) -> tuple[dict[str, Any], list[str]]:
+    """Convert declared numeric-looking strings to numbers. Returns ``(arguments, paths)``.
+
+    Models routinely emit numbers as JSON strings, and a tool whose own signature coerces
+    them is not violated by receiving one. Refusing those calls is over-enforcement, which
+    costs real work and teaches nobody anything.
+
+    This is the whole of the permissiveness, and it is deliberately tiny:
+
+    * only a ``str`` is considered, so a ``bool`` is never read as ``1`` and a nested
+      object is never flattened;
+    * only a path the policy explicitly declares is touched — an identifier that happens
+      to be digits stays a string;
+    * a value that does not parse is returned **exactly as it was**, to be refused by the
+      unchanged schema a moment later. No fallback value is invented: substituting a
+      default would hide the fact that an out-of-contract argument was proposed;
+    * the result must be finite, because ``float("nan")`` succeeds and NaN satisfies no
+      bound — every comparison against it is false, so it would slip past ``minimum`` and
+      ``maximum`` alike.
+
+    The normalized value is then validated by the same schema as before, so this changes a
+    value's *type* and never a schema's strictness.
+    """
+    if not coercions:
+        return dict(arguments), []
+    out = dict(arguments)
+    changed: list[str] = []
+    for path, kind in sorted(coercions.items()):
+        raw = pointer(out, path)
+        if not isinstance(raw, str):
+            continue
+        if kind == "integer":
+            if not _INTEGER_TEXT.match(raw):
+                continue
+            value: Any = int(raw)
+        elif kind == "number":
+            if not _NUMBER_TEXT.match(raw):
+                continue
+            parsed = float(raw)
+            if not math.isfinite(parsed):
+                continue
+            value = parsed
+        else:  # pragma: no cover - guarded by the Literal on RuntimePolicy.coercions
+            continue
+        _set_pointer(out, path, value)
+        changed.append(path)
+    return out, changed
+
+
+def capability_for(tool: str, rule: ToolRule, runtime: RuntimePolicy) -> Capability:
+    """The tool's declared capability, or the one implied by its existing rule.
+
+    Deriving rather than requiring a declaration is what makes this change additive: a
+    policy written before capabilities existed keeps its exact behaviour.
+    """
+    declared = runtime.capabilities.get(tool)
+    if declared is not None:
+        return declared
+    return "scoped_mutation" if rule.mutates else "read_only"
 
 
 class RuntimePolicy(StrictModel):
@@ -98,6 +200,22 @@ class RuntimePolicy(StrictModel):
     ownership_bindings: dict[str, dict[str, str]] = Field(default_factory=dict)
     #: Tools that always need an approval grant, on top of the risk-class rule.
     approval_required_tools: list[str] = Field(default_factory=list)
+    #: tool -> capability. Absent entries are derived from ``ToolRule.mutates``, so a
+    #: policy written before capabilities existed keeps its exact behaviour.
+    capabilities: dict[str, Capability] = Field(default_factory=dict)
+    #: The permission a principal must hold to cause an effect outside the boundary.
+    external_permission: str = "external:send"
+    #: When true, external capabilities also need an approval grant held in host state.
+    #: Off by default: turning it on is a deployment decision with a real utility cost,
+    #: because it denies legitimate outbound work in any deployment with no approver.
+    require_approval_for_external: bool = False
+    #: tool -> {json path: key in ``TrustedContext.payload_values``}. Declared fields are
+    #: written by the host; whatever the model proposed for them is discarded. This is the
+    #: same mechanism as ``scope_bindings``, pointed at free-form content instead of
+    #: tenancy: the model decides *whether* to act, never *what text leaves the system*.
+    payload_bindings: dict[str, dict[str, str]] = Field(default_factory=dict)
+    #: tool -> {json path: "integer" | "number"}. See :func:`normalize_arguments`.
+    coercions: dict[str, dict[str, Literal["integer", "number"]]] = Field(default_factory=dict)
 
 
 class ApprovalGrant(StrictModel):
@@ -140,6 +258,11 @@ class TrustedContext(StrictModel):
     owned_resources: dict[str, list[str]] = Field(default_factory=dict)
     #: Approvals held in host state. An agent cannot add to this list.
     approvals: list[ApprovalGrant] = Field(default_factory=list)
+    #: Host-authored values for fields the policy will not let a model write. Refreshed
+    #: by the host between turns; never derived from model output. Holding them here keeps
+    #: ``authorize`` a two-argument function, so there is no third channel through which
+    #: metadata could reach a decision.
+    payload_values: dict[str, str] = Field(default_factory=dict)
     #: ``shadow`` records the decision an enforcing deployment would have made and lets
     #: the call through, for safe rollout. ``enforce`` applies it.
     mode: Literal["enforce", "shadow"] = "enforce"
@@ -176,6 +299,11 @@ class RuntimeDecision(StrictModel):
     #: Paths the server overwrote, with the value the model had proposed.
     server_bound_paths: list[str] = Field(default_factory=list)
     rejected_proposals: dict[str, Any] = Field(default_factory=dict)
+    #: Paths whose value the host authored rather than the model.
+    payload_bound_paths: list[str] = Field(default_factory=list)
+    #: Paths whose declared numeric string was converted before validation.
+    normalized_paths: list[str] = Field(default_factory=list)
+    capability: Capability = "read_only"
     risk: str = "R0"
     mutates: bool = False
     executed: bool = False
@@ -250,6 +378,42 @@ class RuntimeEnforcer:
             paths.append(path)
         return bound, paths, rejected
 
+    def update_payload_values(self, values: dict[str, str]) -> None:
+        """Refresh the host-authored payload values between turns.
+
+        Deliberately narrow: it writes one field of the trusted context and touches
+        neither permissions, ownership nor approvals, so a plumbing call can never widen
+        what the caller is allowed to do.
+        """
+        self.context = self.context.model_copy(
+            update={"payload_values": {**self.context.payload_values, **values}}
+        )
+
+    def bind_payload(
+        self, bound: dict[str, Any], proposal: ToolProposal
+    ) -> tuple[list[str], dict[str, Any], list[str]]:
+        """Write declared payload fields from host state. ``(paths, rejected, missing)``.
+
+        Mirrors :meth:`bind`, for free-form content rather than scope: the model's value is
+        recorded as evidence and then discarded. A field with no host value is reported as
+        missing so the caller can fail closed — forwarding model-authored content because
+        host state happened to be empty is precisely the failure this prevents.
+        """
+        paths: list[str] = []
+        rejected: dict[str, Any] = {}
+        missing: list[str] = []
+        for path, key in sorted(self.runtime.payload_bindings.get(proposal.tool, {}).items()):
+            trusted = self.context.payload_values.get(key)
+            proposed = pointer(proposal.arguments, path)
+            if trusted is None:
+                missing.append(path)
+                continue
+            if proposed is not None and proposed != trusted:
+                rejected[path] = proposed
+            _set_pointer(bound, path, trusted)
+            paths.append(path)
+        return paths, rejected, missing
+
     # -- authorization ------------------------------------------------------------
     def authorize(self, proposal: ToolProposal) -> RuntimeDecision:
         started = time.perf_counter_ns()
@@ -263,6 +427,19 @@ class RuntimeEnforcer:
             )
 
         bound, bound_paths, rejected = self.bind(proposal, rule)
+        capability = capability_for(proposal.tool, rule, self.runtime)
+
+        # Type normalization first, so the schema validates what the executor will get.
+        bound, normalized_paths = normalize_arguments(
+            bound, self.runtime.coercions.get(proposal.tool, {})
+        )
+
+        # Then payload provenance: the host authors what leaves the system.
+        payload_paths, payload_rejected, payload_missing = self.bind_payload(bound, proposal)
+        rejected.update(payload_rejected)
+        if payload_missing:
+            reasons.append(REASON_PAYLOAD_POLICY)
+
         if rejected:
             # Not fatal on its own: the server has already corrected the value. It is
             # recorded because a proposal that disagreed with trusted scope is a signal.
@@ -313,6 +490,13 @@ class RuntimeEnforcer:
             if fingerprint in self._completed_mutations:
                 reasons.append(REASON_DUPLICATE_WRITE)
 
+        # Leaving the trust boundary needs authority the host granted. Ownership cannot
+        # speak to this: there is no record to own, so without its own control a tool of
+        # this shape is a clean channel out of the system.
+        if capability in EXTERNAL_CAPABILITIES:
+            if self.runtime.external_permission not in self.context.principal.permissions:
+                reasons.append(REASON_EXTERNAL_NOT_AUTHORIZED)
+
         # Approval is checked against host state only. There is no code path by which a
         # message, a tool result or a retrieved document can produce a grant.
         resources = [
@@ -323,6 +507,7 @@ class RuntimeEnforcer:
         needs_approval = (
             rule.risk in APPROVAL_REQUIRED_RISK
             or proposal.tool in self.runtime.approval_required_tools
+            or (self.runtime.require_approval_for_external and capability in EXTERNAL_CAPABILITIES)
         )
         if needs_approval and not any(
             grant.covers(proposal.tool, self.context.principal, resources)
@@ -358,7 +543,17 @@ class RuntimeEnforcer:
             reasons.append(REASON_SANDBOX_REQUIRED)
 
         return self._finish(
-            proposal, decision, reasons, bound, bound_paths, rejected, rule, started
+            proposal,
+            decision,
+            reasons,
+            bound,
+            bound_paths,
+            rejected,
+            rule,
+            started,
+            capability=capability,
+            payload_bound_paths=payload_paths,
+            normalized_paths=normalized_paths,
         )
 
     def _finish(
@@ -371,6 +566,10 @@ class RuntimeEnforcer:
         rejected: dict[str, Any],
         rule: ToolRule,
         started: int,
+        *,
+        capability: Capability = "read_only",
+        payload_bound_paths: list[str] | None = None,
+        normalized_paths: list[str] | None = None,
     ) -> RuntimeDecision:
         effective: Decision = decision if self.context.mode == "enforce" else "ALLOW"
         record = RuntimeDecision(
@@ -383,6 +582,9 @@ class RuntimeEnforcer:
             bound_arguments=bound,
             server_bound_paths=bound_paths,
             rejected_proposals=rejected,
+            payload_bound_paths=payload_bound_paths or [],
+            normalized_paths=normalized_paths or [],
+            capability=capability,
             risk=rule.risk,
             mutates=rule.mutates,
             decided_at_ms=int(time.time() * 1000),
@@ -419,6 +621,9 @@ class RuntimeEnforcer:
                     "mutates": item.mutates,
                     "executed": item.executed,
                     "server_bound_paths": item.server_bound_paths,
+                    "payload_bound_paths": item.payload_bound_paths,
+                    "normalized_paths": item.normalized_paths,
+                    "capability": item.capability,
                 }
                 for item in self.decisions
             ],
