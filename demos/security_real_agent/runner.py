@@ -53,6 +53,12 @@ from demos.security_real_agent.models import (
     RealAgentCaseResult,
     RealAgentScenario,
 )
+from demos.security_real_agent.recovery import (
+    DEFAULT_READINESS_BUDGET_SECONDS,
+    RECOVERY_POLICY,
+    TargetControl,
+    TargetUnavailable,
+)
 from demos.security_real_agent.report import REPORT_VERSION, aggregate
 from services.security.models import digest
 from services.security.trace_detector import (
@@ -567,6 +573,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--readiness-budget-seconds",
+        type=float,
+        default=DEFAULT_READINESS_BUDGET_SECONDS,
+        help=(
+            "how long to wait for the target to go idle after cancelling an abandoned "
+            "run. Bounded; exceeding it stops the run rather than letting every "
+            "remaining case queue behind stuck work and burn its full budget"
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="validate the corpus and print statistics without calling the model",
@@ -701,6 +717,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         load_upstream_adapter_module(), "ExternalAgentError", RuntimeError
     )
 
+    control = TargetControl(args.base_url)
+    recoveries: list[dict[str, Any]] = []
+
+    def reclaim(case_id: str) -> None:
+        """Take back the worker the abandoned turn is still holding.
+
+        Called only after a timeout, and only for its side effect on the *target*. It
+        cannot change this case's verdict: the timeout has already been raised, and the
+        case is recorded as a runtime failure regardless of what happens here.
+        """
+        report = control.recover(budget_seconds=float(args.readiness_budget_seconds))
+        recoveries.append({"case_id": case_id, **report.model_dump(mode="json")})
+        print(
+            f"    cleanup after {case_id}: cancelled {len(report.cancelled_runs)} run(s), "
+            f"ready={report.ready} after {report.waited_seconds:.1f}s"
+            + (f", errors={report.errors}" if report.errors else ""),
+            flush=True,
+        )
+        if not report.ready:
+            # Stopping here is the point. Continuing would queue every remaining case
+            # behind work that still holds the only worker, and each would fail at the
+            # full turn budget — an outage that reads like agent behaviour but is not.
+            raise TargetUnavailable(
+                f"target still busy {report.waited_seconds:.0f}s after cancelling "
+                f"{len(report.cancelled_runs)} run(s) following {case_id}; "
+                f"busy_threads={report.busy_threads} errors={report.errors}. "
+                "Restart the target and resume with --resume."
+            )
+
     def transport(case_id: str, turns: list[str]) -> dict[str, Any]:
         with deadline_guard(turn_timeout) as watch:
             try:
@@ -709,7 +754,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 # The socket was shut down by the deadline timer: whatever the adapter or
                 # http.client raised on the way out, the cause is the timeout.
                 if watch.expired:
-                    raise timeout_error(watch) from exc
+                    error = timeout_error(watch)
+                    # The client gave up; the server did not. The runs API defaults
+                    # on_disconnect to "continue", so without this the abandoned run
+                    # keeps the single dev-server worker and starves every later case.
+                    reclaim(case_id)
+                    raise error from exc
                 if isinstance(exc, adapter_error):
                     raise UpstreamTransportError(str(exc)) from exc
                 raise
@@ -735,13 +785,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
 
     started = utc_now()
-    fresh, runtime = run(
-        remaining,
-        transport,
-        system_prompt_markers=markers,
-        on_case=on_case,
-        timeout_seconds=turn_timeout,
-    )
+    try:
+        fresh, runtime = run(
+            remaining,
+            transport,
+            system_prompt_markers=markers,
+            on_case=on_case,
+            timeout_seconds=turn_timeout,
+        )
+    except TargetUnavailable as exc:
+        # Every case completed so far is already in the checkpoint, so the run is
+        # resumable once the target is healthy. Refusing to continue is deliberate:
+        # the alternative is a long tail of identical full-budget timeouts.
+        print(f"TargetUnavailable: {exc}", flush=True)
+        return 2
     finished = utc_now()
 
     # Terminal state reached. Only now may final artifacts exist; before this point the
@@ -757,6 +814,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         + "\n",
     )
     metadata = {
+        "recovery": {
+            "policy": RECOVERY_POLICY,
+            "readiness_budget_seconds": float(args.readiness_budget_seconds),
+            "note": (
+                "A client deadline does not cancel the server-side run. Abandoned runs "
+                "are cancelled by id and the target is confirmed idle before the next "
+                "case. Cleanup never alters a verdict: a timed-out case stays a runtime "
+                "failure."
+            ),
+            "events": recoveries,
+        },
         "execution_timeout_policy": timeout_policy,
         "resumed": bool(args.resume),
         "cases_carried_from_checkpoint": len(carried),
